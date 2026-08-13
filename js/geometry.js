@@ -2,7 +2,7 @@
 // PyCNC Virtual Machine
 // Geometry helpers
 // ========================================
-
+import * as THREE from "three";
 export function box(
     x,
     y,
