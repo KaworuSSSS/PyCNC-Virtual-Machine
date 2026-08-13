@@ -1,27 +1,420 @@
+* {
+    box-sizing: border-box;
+}
+
 html,
 body {
-
     margin: 0;
-    padding: 0;
-
     width: 100%;
     height: 100%;
-
     overflow: hidden;
-
-    background: #0d1115;
-
+    background: #090c0f;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 #viewport {
-
-    width: 100%;
-    height: 100%;
-
+    position: fixed;
+    inset: 0;
 }
 
 canvas {
+    display: block;
+}
+
+
+/* =========================================================
+   HUD
+   ========================================================= */
+
+#hud {
+    position: fixed;
+    z-index: 20;
+
+    top: 18px;
+    left: 18px;
+
+    width: 255px;
+
+    padding: 18px;
+
+    color: #e9edf0;
+
+    background: rgba(10,14,18,.90);
+
+    border: 1px solid rgba(255,255,255,.12);
+
+    border-radius: 12px;
+
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+
+    backdrop-filter: blur(14px);
+}
+
+.title {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin-top: 4px;
+    color: #7e8991;
+    font-size: 9px;
+    letter-spacing: 3px;
+}
+
+.separator {
+    height: 1px;
+    margin: 15px 0;
+    background: rgba(255,255,255,.09);
+}
+
+.coordinate {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+.axis-x {
+    color: #ef6666;
+    font-weight: bold;
+}
+
+.axis-y {
+    color: #62d48a;
+    font-weight: bold;
+}
+
+.axis-z {
+    color: #70a8ef;
+    font-weight: bold;
+}
+
+.coordinate b {
+    font-family: Consolas, monospace;
+    font-size: 14px;
+}
+
+.status {
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+.status-dot {
+    display: inline-block;
+
+    width: 7px;
+    height: 7px;
+
+    margin-right: 7px;
+
+    border-radius: 50%;
+
+    background: #45d27a;
+
+    box-shadow: 0 0 10px #45d27a;
+}
+
+
+/* =========================================================
+   CONTROL
+   ========================================================= */
+
+#controls {
+
+    position: fixed;
+    z-index: 20;
+
+    top: 18px;
+    right: 18px;
+
+    width: 215px;
+
+    padding: 15px;
+
+    color: white;
+
+    background: rgba(10,14,18,.90);
+
+    border: 1px solid rgba(255,255,255,.12);
+
+    border-radius: 12px;
+
+    backdrop-filter: blur(14px);
+}
+
+.control-title {
+    margin-bottom: 10px;
+
+    color: #7e8991;
+
+    font-size: 9px;
+
+    letter-spacing: 2px;
+}
+
+button {
+
+    width: 100%;
+
+    margin: 3px 0;
+
+    padding: 10px;
+
+    border: 0;
+
+    border-radius: 6px;
+
+    background: #252c31;
+
+    color: #e8ecef;
+
+    cursor: pointer;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    transition: background .12s, transform .08s;
+}
+
+button:hover {
+    background: #343d43;
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+#start:hover {
+    background: #245e3b;
+}
+
+#stop:hover {
+    background: #712b31;
+}
+
+label {
 
     display: block;
 
+    margin-top: 13px;
+    margin-bottom: 6px;
+
+    color: #8e989f;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+
+/* =========================================================
+   JOG
+   ========================================================= */
+
+#jog {
+
+    position: fixed;
+
+    z-index: 20;
+
+    left: 18px;
+    bottom: 18px;
+
+    width: 255px;
+
+    padding: 15px;
+
+    color: white;
+
+    background: rgba(10,14,18,.90);
+
+    border: 1px solid rgba(255,255,255,.12);
+
+    border-radius: 12px;
+
+    backdrop-filter: blur(14px);
+
+    box-shadow: 0 20px 60px rgba(0,0,0,.40);
+}
+
+.jog-step {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    margin-bottom: 13px;
+
+    color: #7e8991;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+}
+
+.jog-step .step {
+
+    width: auto;
+
+    margin: 0;
+
+    padding: 6px 8px;
+
+    font-size: 9px;
+
+    color: #9ca5aa;
+
+    background: #20262a;
+}
+
+.jog-step .step.active {
+
+    background: #3d687b;
+
+    color: white;
+}
+
+.jog-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr 1fr;
+
+    gap: 5px;
+}
+
+.jog-btn,
+.home-mini {
+
+    height: 42px;
+
+    margin: 0;
+
+    border-radius: 6px;
+
+    font-family: Consolas, monospace;
+
+    font-size: 12px;
+
+    font-weight: bold;
+}
+
+.jog-btn.x {
+    color: #ef7777;
+}
+
+.jog-btn.y {
+    color: #70d694;
+}
+
+.jog-btn.z {
+    color: #79aef0;
+}
+
+.jog-btn:hover {
+    background: #343d43;
+}
+
+.jog-btn:active {
+
+    transform: scale(.96);
+
+    background: #465158;
+}
+
+.home-mini {
+
+    color: #d7dde0;
+
+    background: #252c31;
+}
+
+.z-controls {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 5px;
+
+    margin-top: 5px;
+}
+
+.z-controls .jog-btn {
+    height: 38px;
+}
+
+
+/* =========================================================
+   HELP
+   ========================================================= */
+
+#help {
+
+    position: fixed;
+
+    right: 18px;
+    bottom: 16px;
+
+    z-index: 20;
+
+    padding: 8px 12px;
+
+    color: #737e85;
+
+    background: rgba(8,11,14,.78);
+
+    border-radius: 7px;
+
+    font-size: 10px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+#error {
+
+    display: none;
+
+    position: fixed;
+
+    z-index: 100;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%,-50%);
+
+    width: min(720px,90vw);
+
+    padding: 22px;
+
+    color: white;
+
+    background: #291519;
+
+    border: 1px solid #87414c;
+
+    border-radius: 12px;
+}
+
+#error h3 {
+    margin-top: 0;
+}
+
+#error pre {
+    white-space: pre-wrap;
+    font-size: 12px;
 }
