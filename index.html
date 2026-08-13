@@ -12,15 +12,373 @@
 
     <title>PyCNC Virtual Machine</title>
 
+    <link
+        rel="stylesheet"
+        href="css/cnc.css"
+    >
+
 </head>
 
 <body>
 
-    <h1>PyCNC Virtual Machine</h1>
+    <div id="viewport"></div>
 
-    <p>
-        Virtual CNC Machine Simulator
-    </p>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.min.js"
+    ></script>
+
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/three@0.180.0/examples/js/controls/OrbitControls.js"
+    ></script>
+
+
+    <script>
+
+        /*
+         * ==========================================
+         * SCENE
+         * ==========================================
+         */
+
+        const scene =
+            new THREE.Scene();
+
+
+        scene.background =
+            new THREE.Color(
+                0x0d1115
+            );
+
+
+        /*
+         * ==========================================
+         * CAMERA
+         * ==========================================
+         */
+
+        const camera =
+            new THREE.PerspectiveCamera(
+
+                40,
+
+                window.innerWidth /
+                window.innerHeight,
+
+                1,
+
+                5000
+
+            );
+
+
+        camera.position.set(
+            700,
+            600,
+            800
+        );
+
+
+        /*
+         * ==========================================
+         * RENDERER
+         * ==========================================
+         */
+
+        const renderer =
+            new THREE.WebGLRenderer({
+
+                antialias: true
+
+            });
+
+
+        renderer.setPixelRatio(
+            Math.min(
+                window.devicePixelRatio,
+                2
+            )
+        );
+
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+
+        renderer.shadowMap.enabled =
+            true;
+
+
+        renderer.shadowMap.type =
+            THREE.PCFSoftShadowMap;
+
+
+        renderer.outputColorSpace =
+            THREE.SRGBColorSpace;
+
+
+        document
+            .getElementById("viewport")
+            .appendChild(
+                renderer.domElement
+            );
+
+
+        /*
+         * ==========================================
+         * CONTROLS
+         * ==========================================
+         */
+
+        const controls =
+            new THREE.OrbitControls(
+                camera,
+                renderer.domElement
+            );
+
+
+        controls.target.set(
+            55,
+            0,
+            35
+        );
+
+
+        controls.enableDamping =
+            true;
+
+
+        controls.dampingFactor =
+            0.05;
+
+
+        controls.minDistance =
+            150;
+
+
+        controls.maxDistance =
+            1800;
+
+
+        /*
+         * ==========================================
+         * LIGHTING
+         * ==========================================
+         */
+
+        const hemisphere =
+            new THREE.HemisphereLight(
+
+                0xe8eef2,
+                0x161b20,
+                2.0
+
+            );
+
+
+        scene.add(
+            hemisphere
+        );
+
+
+        const keyLight =
+            new THREE.DirectionalLight(
+
+                0xffffff,
+                3.0
+
+            );
+
+
+        keyLight.position.set(
+            500,
+            900,
+            500
+        );
+
+
+        keyLight.castShadow =
+            true;
+
+
+        keyLight.shadow.mapSize.set(
+            2048,
+            2048
+        );
+
+
+        scene.add(
+            keyLight
+        );
+
+
+        /*
+         * ==========================================
+         * MATERIAL
+         * ==========================================
+         */
+
+        const baseMaterial =
+            new THREE.MeshStandardMaterial({
+
+                color: 0x272d31,
+
+                metalness: 0.9,
+
+                roughness: 0.25
+
+            });
+
+
+        const tableMaterial =
+            new THREE.MeshStandardMaterial({
+
+                color: 0x929b9f,
+
+                metalness: 0.9,
+
+                roughness: 0.2
+
+            });
+
+
+        /*
+         * ==========================================
+         * BASE
+         * ==========================================
+         */
+
+        const base =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+                    290,
+                    60,
+                    250
+                ),
+
+                baseMaterial
+
+            );
+
+
+        base.position.set(
+            55,
+            30,
+            35
+        );
+
+
+        base.castShadow =
+            true;
+
+
+        base.receiveShadow =
+            true;
+
+
+        scene.add(
+            base
+        );
+
+
+        /*
+         * ==========================================
+         * TABLE
+         * ==========================================
+         */
+
+        const table =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+                    110,
+                    20,
+                    70
+                ),
+
+                tableMaterial
+
+            );
+
+
+        table.position.set(
+            55,
+            70,
+            35
+        );
+
+
+        table.castShadow =
+            true;
+
+
+        table.receiveShadow =
+            true;
+
+
+        scene.add(
+            table
+        );
+
+
+        /*
+         * ==========================================
+         * ANIMATION
+         * ==========================================
+         */
+
+        function animate() {
+
+            requestAnimationFrame(
+                animate
+            );
+
+
+            controls.update();
+
+
+            renderer.render(
+                scene,
+                camera
+            );
+
+        }
+
+
+        animate();
+
+
+        /*
+         * ==========================================
+         * RESIZE
+         * ==========================================
+         */
+
+        window.addEventListener(
+            "resize",
+            () => {
+
+                camera.aspect =
+                    window.innerWidth /
+                    window.innerHeight;
+
+
+                camera.updateProjectionMatrix();
+
+
+                renderer.setSize(
+                    window.innerWidth,
+                    window.innerHeight
+                );
+
+            }
+        );
+
+    </script>
 
 </body>
 
