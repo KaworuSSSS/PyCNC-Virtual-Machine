@@ -3,38 +3,34 @@
 // Geometry helpers
 // ========================================
 
-export function mat(color, roughness = 0.5, metalness = 0.0) {
-    return new THREE.MeshStandardMaterial({
-        color: color,
-        roughness: roughness,
-        metalness: metalness
-    });
-}
-
-
 export function box(
-    width,
-    height,
-    depth,
-    material,
-    x = 0,
-    y = 0,
-    z = 0
+    x,
+    y,
+    z,
+    material
 ) {
-    const geometry = new THREE.BoxGeometry(
-        width,
-        height,
-        depth
-    );
 
-    const mesh = new THREE.Mesh(
-        geometry,
-        material
-    );
+    const mesh =
+        new THREE.Mesh(
 
-    mesh.position.set(x, y, z);
+            new THREE.BoxGeometry(
+                x,
+                y,
+                z
+            ),
+
+            material
+
+        );
+
+    mesh.castShadow =
+        true;
+
+    mesh.receiveShadow =
+        true;
 
     return mesh;
+
 }
 
 
@@ -42,49 +38,63 @@ export function cylinder(
     radius,
     height,
     material,
-    x = 0,
-    y = 0,
-    z = 0
+    segments = 32
 ) {
-    const geometry = new THREE.CylinderGeometry(
-        radius,
-        radius,
-        height,
-        32
-    );
 
-    const mesh = new THREE.Mesh(
-        geometry,
-        material
-    );
+    const mesh =
+        new THREE.Mesh(
 
-    mesh.position.set(x, y, z);
+            new THREE.CylinderGeometry(
+                radius,
+                radius,
+                height,
+                segments
+            ),
+
+            material
+
+        );
+
+    mesh.castShadow =
+        true;
+
+    mesh.receiveShadow =
+        true;
 
     return mesh;
+
 }
 
 
 export function addBox(
-    scene,
-    width,
-    height,
-    depth,
+    parent,
+    sx,
+    sy,
+    sz,
     material,
-    x = 0,
-    y = 0,
-    z = 0
+    px,
+    py,
+    pz
 ) {
-    const mesh = box(
-        width,
-        height,
-        depth,
-        material,
-        x,
-        y,
-        z
+
+    const mesh =
+        box(
+            sx,
+            sy,
+            sz,
+            material
+        );
+
+    mesh.position.set(
+        px,
+        py,
+        pz
     );
 
-    scene.add(mesh);
+    parent.add(
+        mesh
+    );
 
     return mesh;
+
 }
