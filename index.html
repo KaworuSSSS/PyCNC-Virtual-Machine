@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 
@@ -9,443 +8,13 @@
 
 <title>PyCNC Studio</title>
 
-<style>
-
-* {
-    box-sizing: border-box;
-}
-
-html,
-body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #090c0f;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-#viewport {
-    position: fixed;
-    inset: 0;
-}
-
-canvas {
-    display: block;
-}
-
-
-/* =========================================================
-   HUD
-   ========================================================= */
-
-#hud {
-    position: fixed;
-    z-index: 20;
-
-    top: 18px;
-    left: 18px;
-
-    width: 255px;
-
-    padding: 18px;
-
-    color: #e9edf0;
-
-    background: rgba(10,14,18,.90);
-
-    border: 1px solid rgba(255,255,255,.12);
-
-    border-radius: 12px;
-
-    box-shadow: 0 20px 60px rgba(0,0,0,.45);
-
-    backdrop-filter: blur(14px);
-}
-
-.title {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.subtitle {
-    margin-top: 4px;
-    color: #7e8991;
-    font-size: 9px;
-    letter-spacing: 3px;
-}
-
-.separator {
-    height: 1px;
-    margin: 15px 0;
-    background: rgba(255,255,255,.09);
-}
-
-.coordinate {
-    display: flex;
-    justify-content: space-between;
-    margin: 10px 0;
-    font-size: 13px;
-}
-
-.axis-x {
-    color: #ef6666;
-    font-weight: bold;
-}
-
-.axis-y {
-    color: #62d48a;
-    font-weight: bold;
-}
-
-.axis-z {
-    color: #70a8ef;
-    font-weight: bold;
-}
-
-.coordinate b {
-    font-family: Consolas, monospace;
-    font-size: 14px;
-}
-
-.status {
-    font-size: 10px;
-    letter-spacing: 2px;
-}
-
-.status-dot {
-    display: inline-block;
-
-    width: 7px;
-    height: 7px;
-
-    margin-right: 7px;
-
-    border-radius: 50%;
-
-    background: #45d27a;
-
-    box-shadow: 0 0 10px #45d27a;
-}
-
-
-/* =========================================================
-   CONTROL
-   ========================================================= */
-
-#controls {
-
-    position: fixed;
-    z-index: 20;
-
-    top: 18px;
-    right: 18px;
-
-    width: 215px;
-
-    padding: 15px;
-
-    color: white;
-
-    background: rgba(10,14,18,.90);
-
-    border: 1px solid rgba(255,255,255,.12);
-
-    border-radius: 12px;
-
-    backdrop-filter: blur(14px);
-}
-
-.control-title {
-    margin-bottom: 10px;
-
-    color: #7e8991;
-
-    font-size: 9px;
-
-    letter-spacing: 2px;
-}
-
-button {
-
-    width: 100%;
-
-    margin: 3px 0;
-
-    padding: 10px;
-
-    border: 0;
-
-    border-radius: 6px;
-
-    background: #252c31;
-
-    color: #e8ecef;
-
-    cursor: pointer;
-
-    font-size: 11px;
-
-    font-weight: bold;
-
-    transition: background .12s, transform .08s;
-}
-
-button:hover {
-    background: #343d43;
-}
-
-button:active {
-    transform: scale(.97);
-}
-
-#start:hover {
-    background: #245e3b;
-}
-
-#stop:hover {
-    background: #712b31;
-}
-
-label {
-
-    display: block;
-
-    margin-top: 13px;
-    margin-bottom: 6px;
-
-    color: #8e989f;
-
-    font-size: 10px;
-
-    letter-spacing: 1px;
-}
-
-input[type="range"] {
-    width: 100%;
-}
-
-
-/* =========================================================
-   JOG
-   ========================================================= */
-
-#jog {
-
-    position: fixed;
-
-    z-index: 20;
-
-    left: 18px;
-    bottom: 18px;
-
-    width: 255px;
-
-    padding: 15px;
-
-    color: white;
-
-    background: rgba(10,14,18,.90);
-
-    border: 1px solid rgba(255,255,255,.12);
-
-    border-radius: 12px;
-
-    backdrop-filter: blur(14px);
-
-    box-shadow: 0 20px 60px rgba(0,0,0,.40);
-}
-
-.jog-step {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-    margin-bottom: 13px;
-
-    color: #7e8991;
-
-    font-size: 9px;
-
-    letter-spacing: 1px;
-}
-
-.jog-step .step {
-
-    width: auto;
-
-    margin: 0;
-
-    padding: 6px 8px;
-
-    font-size: 9px;
-
-    color: #9ca5aa;
-
-    background: #20262a;
-}
-
-.jog-step .step.active {
-
-    background: #3d687b;
-
-    color: white;
-}
-
-.jog-grid {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr 1fr;
-
-    gap: 5px;
-}
-
-.jog-btn,
-.home-mini {
-
-    height: 42px;
-
-    margin: 0;
-
-    border-radius: 6px;
-
-    font-family: Consolas, monospace;
-
-    font-size: 12px;
-
-    font-weight: bold;
-}
-
-.jog-btn.x {
-    color: #ef7777;
-}
-
-.jog-btn.y {
-    color: #70d694;
-}
-
-.jog-btn.z {
-    color: #79aef0;
-}
-
-.jog-btn:hover {
-    background: #343d43;
-}
-
-.jog-btn:active {
-
-    transform: scale(.96);
-
-    background: #465158;
-}
-
-.home-mini {
-
-    color: #d7dde0;
-
-    background: #252c31;
-}
-
-.z-controls {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 5px;
-
-    margin-top: 5px;
-}
-
-.z-controls .jog-btn {
-    height: 38px;
-}
-
-
-/* =========================================================
-   HELP
-   ========================================================= */
-
-#help {
-
-    position: fixed;
-
-    right: 18px;
-    bottom: 16px;
-
-    z-index: 20;
-
-    padding: 8px 12px;
-
-    color: #737e85;
-
-    background: rgba(8,11,14,.78);
-
-    border-radius: 7px;
-
-    font-size: 10px;
-
-    line-height: 1.6;
-}
-
-
-/* =========================================================
-   ERROR
-   ========================================================= */
-
-#error {
-
-    display: none;
-
-    position: fixed;
-
-    z-index: 100;
-
-    top: 50%;
-    left: 50%;
-
-    transform: translate(-50%,-50%);
-
-    width: min(720px,90vw);
-
-    padding: 22px;
-
-    color: white;
-
-    background: #291519;
-
-    border: 1px solid #87414c;
-
-    border-radius: 12px;
-}
-
-#error h3 {
-    margin-top: 0;
-}
-
-#error pre {
-    white-space: pre-wrap;
-    font-size: 12px;
-}
-
-</style>
+<link rel="stylesheet" href="css/cnc.css">
 
 </head>
 
-
 <body>
 
-
 <div id="viewport"></div>
-
-
-<!-- =========================================================
-     HUD
-     ========================================================= -->
 
 <div id="hud">
 
@@ -461,9 +30,7 @@ input[type="range"] {
 
     <div class="coordinate">
 
-        <span class="axis-x">
-            X
-        </span>
+        <span class="axis-x">X</span>
 
         <span>
             <b id="x">0.00</b> mm
@@ -473,9 +40,7 @@ input[type="range"] {
 
     <div class="coordinate">
 
-        <span class="axis-y">
-            Y
-        </span>
+        <span class="axis-y">Y</span>
 
         <span>
             <b id="y">0.00</b> mm
@@ -485,9 +50,7 @@ input[type="range"] {
 
     <div class="coordinate">
 
-        <span class="axis-z">
-            Z
-        </span>
+        <span class="axis-z">Z</span>
 
         <span>
             <b id="z">0.00</b> mm
@@ -509,10 +72,6 @@ input[type="range"] {
 
 </div>
 
-
-<!-- =========================================================
-     MACHINE CONTROL
-     ========================================================= -->
 
 <div id="controls">
 
@@ -551,10 +110,6 @@ input[type="range"] {
 
 </div>
 
-
-<!-- =========================================================
-     MANUAL JOG
-     ========================================================= -->
 
 <div id="jog">
 
@@ -595,7 +150,6 @@ input[type="range"] {
 
     </div>
 
-
     <div class="jog-grid">
 
         <div></div>
@@ -609,7 +163,6 @@ input[type="range"] {
         </button>
 
         <div></div>
-
 
         <button
             class="jog-btn x"
@@ -634,7 +187,6 @@ input[type="range"] {
             X+
         </button>
 
-
         <div></div>
 
         <button
@@ -648,7 +200,6 @@ input[type="range"] {
         <div></div>
 
     </div>
-
 
     <div class="z-controls">
 
@@ -673,10 +224,6 @@ input[type="range"] {
 </div>
 
 
-<!-- =========================================================
-     HELP
-     ========================================================= -->
-
 <div id="help">
 
     Arrastra: rotar<br>
@@ -686,10 +233,6 @@ input[type="range"] {
 
 </div>
 
-
-<!-- =========================================================
-     ERROR
-     ========================================================= -->
 
 <div id="error">
 
@@ -713,6 +256,9 @@ input[type="range"] {
 
 </script>
 
+<script src="js/machine-config.js"></script>
+<script src="js/error-handler.js"></script>
+
 
 <script type="module">
 
@@ -725,130 +271,7 @@ from
 "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
 
 
-/* =========================================================
-   WORK AREA
-   =========================================================
-
-   TODO EL PROYECTO TRABAJA EN MILÍMETROS.
-
-   1100 mm = 110 cm
-    700 mm =  70 cm
-    700 mm =  70 cm
-   ========================================================= */
-
-const WORK_AREA = {
-
-    X: 1100,
-
-    Y: 700,
-
-    Z: 700
-
-};
-
-
-/* =========================================================
-   MACHINE LIMITS
-   ========================================================= */
-
-const LIMITS = {
-
-    X_MIN: 0,
-
-    X_MAX: WORK_AREA.X,
-
-    Y_MIN: 0,
-
-    Y_MAX: WORK_AREA.Y,
-
-    Z_MIN: 0,
-
-    Z_MAX: WORK_AREA.Z
-
-};
-
-
-/* =========================================================
-   MACHINE DIMENSIONS
-   ========================================================= */
-
-const MACHINE = {
-
-    tableX: WORK_AREA.X,
-
-    tableY: WORK_AREA.Y,
-
-    tableThickness: 40,
-
-    frameHeight: 850,
-
-    columnSize: 70,
-
-    gantryThickness: 70,
-
-    gantryDepth: 100,
-
-    spindleWidth: 90,
-
-    spindleDepth: 90,
-
-    toolLength: 120
-
-};
-
-
-/* =========================================================
-   ERROR HANDLING
-   ========================================================= */
-
-function showError(error) {
-
-    console.error(error);
-
-    document
-        .getElementById("error")
-        .style.display = "block";
-
-    document
-        .getElementById("errorText")
-        .textContent =
-        String(
-            error?.stack ||
-            error
-        );
-
-}
-
-window.addEventListener(
-    "error",
-    event => {
-
-        if (event.error) {
-
-            showError(
-                event.error
-            );
-
-        }
-
-    }
-);
-
-window.addEventListener(
-    "unhandledrejection",
-    event => {
-
-        showError(
-            event.reason
-        );
-
-    }
-);
-
-
-/* =========================================================
-   SCENE
-   ========================================================= */
+/* SCENE */
 
 const scene =
     new THREE.Scene();
@@ -866,9 +289,7 @@ scene.fog =
     );
 
 
-/* =========================================================
-   CAMERA
-   ========================================================= */
+/* CAMERA */
 
 const camera =
     new THREE.PerspectiveCamera(
@@ -891,9 +312,7 @@ camera.position.set(
 );
 
 
-/* =========================================================
-   RENDERER
-   ========================================================= */
+/* RENDERER */
 
 const renderer =
     new THREE.WebGLRenderer({
@@ -930,9 +349,7 @@ document
     );
 
 
-/* =========================================================
-   CAMERA CONTROLS
-   ========================================================= */
+/* CAMERA CONTROLS */
 
 const controls =
     new OrbitControls(
@@ -959,9 +376,7 @@ controls.maxDistance =
     3500;
 
 
-/* =========================================================
-   LIGHTS
-   ========================================================= */
+/* LIGHTS */
 
 scene.add(
     new THREE.HemisphereLight(
@@ -970,7 +385,6 @@ scene.add(
         2.0
     )
 );
-
 
 const keyLight =
     new THREE.DirectionalLight(
@@ -996,7 +410,6 @@ scene.add(
     keyLight
 );
 
-
 const fillLight =
     new THREE.DirectionalLight(
         0x8ca9c7,
@@ -1014,9 +427,7 @@ scene.add(
 );
 
 
-/* =========================================================
-   MATERIALS
-   ========================================================= */
+/* MATERIALS */
 
 function mat(
     color,
@@ -1033,7 +444,6 @@ function mat(
     });
 
 }
-
 
 const aluminum =
     mat(
@@ -1070,13 +480,6 @@ const steel =
         0.15
     );
 
-const rubber =
-    mat(
-        0x0b0d0f,
-        0.15,
-        0.78
-    );
-
 const yellow =
     mat(
         0xd5a72a,
@@ -1092,9 +495,7 @@ const workMaterial =
     );
 
 
-/* =========================================================
-   GEOMETRY
-   ========================================================= */
+/* GEOMETRY */
 
 function box(
     x,
@@ -1193,9 +594,7 @@ function addBox(
 }
 
 
-/* =========================================================
-   MACHINE ROOT
-   ========================================================= */
+/* MACHINE */
 
 const cnc =
     new THREE.Group();
@@ -1205,108 +604,68 @@ scene.add(
 );
 
 
-/*
- * Usaremos:
- *
- * X = izquierda/derecha
- * Y = altura
- * Z = profundidad
- *
- * El origen de trabajo estará en:
- *
- * X = 0
- * Z = 0
- * Y = superficie de mesa
- */
-
-
-const TABLE_Y =
-    80;
-
-
-/* =========================================================
-   BASE
-   ========================================================= */
+/* BASE */
 
 addBox(
 
     cnc,
 
     WORK_AREA.X + 180,
-
     60,
-
     WORK_AREA.Y + 180,
 
     aluminumDark,
 
     WORK_AREA.X / 2,
-
     30,
-
     WORK_AREA.Y / 2
 
 );
 
 
-/* =========================================================
-   TABLE
-   ========================================================= */
+/* TABLE */
 
 addBox(
 
     cnc,
 
     WORK_AREA.X,
-
     MACHINE.tableThickness,
-
     WORK_AREA.Y,
 
     aluminumLight,
 
     WORK_AREA.X / 2,
-
     TABLE_Y,
-
     WORK_AREA.Y / 2
 
 );
-
-
-/* =========================================================
-   WORK SURFACE
-   ========================================================= */
 
 const TABLE_TOP =
     TABLE_Y +
     MACHINE.tableThickness / 2;
 
 
+/* WORK SURFACE */
+
 addBox(
 
     cnc,
 
     WORK_AREA.X - 40,
-
     8,
-
     WORK_AREA.Y - 40,
 
     black,
 
     WORK_AREA.X / 2,
-
     TABLE_TOP + 4,
-
     WORK_AREA.Y / 2
 
 );
 
 
-/* =========================================================
-   T SLOTS
-   ========================================================= */
+/* T SLOTS */
 
 for (
     let x = 50;
@@ -1319,17 +678,13 @@ for (
         cnc,
 
         4,
-
         2,
-
         WORK_AREA.Y - 60,
 
         aluminumLight,
 
         x,
-
         TABLE_TOP + 9,
-
         WORK_AREA.Y / 2
 
     );
@@ -1337,9 +692,7 @@ for (
 }
 
 
-/* =========================================================
-   WORKPIECE
-   ========================================================= */
+/* WORKPIECE */
 
 const workpiece =
     addBox(
@@ -1347,25 +700,19 @@ const workpiece =
         cnc,
 
         420,
-
         35,
-
         260,
 
         workMaterial,
 
         WORK_AREA.X / 2,
-
         TABLE_TOP + 26,
-
         WORK_AREA.Y / 2
 
     );
 
 
-/* =========================================================
-   VISE
-   ========================================================= */
+/* VISE */
 
 addBox(
     cnc,
@@ -1401,9 +748,7 @@ addBox(
 );
 
 
-/* =========================================================
-   COLUMNS
-   ========================================================= */
+/* COLUMNS */
 
 const columnHeight =
     MACHINE.frameHeight;
@@ -1411,7 +756,6 @@ const columnHeight =
 const columnY =
     TABLE_TOP +
     columnHeight / 2;
-
 
 for (
     const x of [
@@ -1432,17 +776,13 @@ for (
             cnc,
 
             MACHINE.columnSize,
-
             columnHeight,
-
             MACHINE.columnSize,
 
             aluminum,
 
             x,
-
             columnY,
-
             z
 
         );
@@ -1452,17 +792,13 @@ for (
             cnc,
 
             MACHINE.columnSize + 25,
-
             35,
-
             MACHINE.columnSize + 25,
 
             aluminumDark,
 
             x,
-
             TABLE_TOP + 20,
-
             z
 
         );
@@ -1472,31 +808,24 @@ for (
 }
 
 
-/* =========================================================
-   UPPER FRAME
-   ========================================================= */
+/* UPPER FRAME */
 
 const FRAME_TOP =
     TABLE_TOP +
     columnHeight;
-
 
 addBox(
 
     cnc,
 
     WORK_AREA.X + 70,
-
     80,
-
     100,
 
     aluminumDark,
 
     WORK_AREA.X / 2,
-
     FRAME_TOP,
-
     40
 
 );
@@ -1506,25 +835,19 @@ addBox(
     cnc,
 
     WORK_AREA.X + 70,
-
     80,
-
     100,
 
     aluminumDark,
 
     WORK_AREA.X / 2,
-
     FRAME_TOP,
-
     WORK_AREA.Y - 40
 
 );
 
 
-/* =========================================================
-   GANTRY
-   ========================================================= */
+/* GANTRY */
 
 const gantry =
     new THREE.Group();
@@ -1533,16 +856,6 @@ cnc.add(
     gantry
 );
 
-
-/*
- * gantry.position.x
- * = coordenada CNC X
- *
- * gantry.position.z
- * = coordenada CNC Y
- */
-
-
 gantry.position.set(
     0,
     0,
@@ -1550,35 +863,26 @@ gantry.position.set(
 );
 
 
-/* =========================================================
-   GANTRY BEAM
-   ========================================================= */
+/* GANTRY BEAM */
 
-const gantryBeam =
-    addBox(
+addBox(
 
-        gantry,
+    gantry,
 
-        WORK_AREA.X + 30,
+    WORK_AREA.X + 30,
+    90,
+    100,
 
-        90,
+    aluminum,
 
-        100,
+    WORK_AREA.X / 2,
+    FRAME_TOP - 120,
+    0
 
-        aluminum,
-
-        WORK_AREA.X / 2,
-
-        FRAME_TOP - 120,
-
-        0
-
-    );
+);
 
 
-/* =========================================================
-   GANTRY SIDE PLATES
-   ========================================================= */
+/* GANTRY SIDE PLATES */
 
 addBox(
     gantry,
@@ -1603,9 +907,7 @@ addBox(
 );
 
 
-/* =========================================================
-   Y RAILS
-   ========================================================= */
+/* Y RAILS */
 
 for (
     const x of [
@@ -1637,9 +939,7 @@ for (
 }
 
 
-/* =========================================================
-   CARRIAGE
-   ========================================================= */
+/* CARRIAGE */
 
 const carriage =
     new THREE.Group();
@@ -1648,36 +948,24 @@ gantry.add(
     carriage
 );
 
-
-/*
- * carriage.position.x
- * representa el movimiento X
- */
-
 carriage.position.x =
     WORK_AREA.X / 2;
 
 
-/* =========================================================
-   CARRIAGE BODY
-   ========================================================= */
+/* CARRIAGE BODY */
 
 addBox(
 
     carriage,
 
     180,
-
     180,
-
     130,
 
     aluminumDark,
 
     0,
-
     FRAME_TOP - 220,
-
     0
 
 );
@@ -1687,25 +975,19 @@ addBox(
     carriage,
 
     150,
-
     100,
-
     150,
 
     aluminum,
 
     0,
-
     FRAME_TOP - 340,
-
     0
 
 );
 
 
-/* =========================================================
-   X RAILS
-   ========================================================= */
+/* X RAILS */
 
 for (
     const y of [
@@ -1725,10 +1007,10 @@ for (
         Math.PI / 2;
 
     rail.position.set(
-    	WORK_AREA.X / 2,
-   	 y,
-    	-70
-	);
+        WORK_AREA.X / 2,
+        y,
+        -70
+    );
 
     gantry.add(
         rail
@@ -1737,9 +1019,7 @@ for (
 }
 
 
-/* =========================================================
-   Z AXIS
-   ========================================================= */
+/* Z AXIS */
 
 const zAxis =
     new THREE.Group();
@@ -1748,47 +1028,30 @@ carriage.add(
     zAxis
 );
 
-
-/*
- * Coordenada Z:
- *
- * 0 = herramienta en mesa
- * 700 = herramienta arriba
- */
-
-
 let machineZ =
     WORK_AREA.Z;
 
 
-/* =========================================================
-   Z BODY
-   ========================================================= */
+/* Z BODY */
 
 addBox(
 
     zAxis,
 
     MACHINE.spindleWidth,
-
     360,
-
     MACHINE.spindleDepth,
 
     black,
 
     0,
-
     0,
-
     0
 
 );
 
 
-/* =========================================================
-   Z GUIDE RODS
-   ========================================================= */
+/* Z GUIDE RODS */
 
 for (
     const x of [-30, 30]
@@ -1814,9 +1077,7 @@ for (
 }
 
 
-/* =========================================================
-   SPINDLE
-   ========================================================= */
+/* SPINDLE */
 
 const spindle =
     new THREE.Group();
@@ -1826,9 +1087,7 @@ zAxis.add(
 );
 
 
-/* =========================================================
-   SPINDLE BODY
-   ========================================================= */
+/* SPINDLE BODY */
 
 const spindleBody =
     cylinder(
@@ -1845,9 +1104,7 @@ spindle.add(
 );
 
 
-/* =========================================================
-   SPINDLE TOP
-   ========================================================= */
+/* SPINDLE TOP */
 
 const spindleTop =
     cylinder(
@@ -1864,9 +1121,7 @@ spindle.add(
 );
 
 
-/* =========================================================
-   MOTOR
-   ========================================================= */
+/* MOTOR */
 
 const motor =
     cylinder(
@@ -1883,9 +1138,7 @@ spindle.add(
 );
 
 
-/* =========================================================
-   MOTOR RINGS
-   ========================================================= */
+/* MOTOR RINGS */
 
 for (
     let y = 95;
@@ -1910,9 +1163,7 @@ for (
 }
 
 
-/* =========================================================
-   TOOL ROTATION GROUP
-   ========================================================= */
+/* TOOL ROTATION */
 
 const toolRotation =
     new THREE.Group();
@@ -1922,9 +1173,7 @@ spindle.add(
 );
 
 
-/* =========================================================
-   SHAFT
-   ========================================================= */
+/* SHAFT */
 
 const shaft =
     cylinder(
@@ -1941,9 +1190,7 @@ toolRotation.add(
 );
 
 
-/* =========================================================
-   COLLET
-   ========================================================= */
+/* COLLET */
 
 const collet =
     cylinder(
@@ -1960,9 +1207,7 @@ toolRotation.add(
 );
 
 
-/* =========================================================
-   CUTTER
-   ========================================================= */
+/* CUTTER */
 
 const cutter =
     cylinder(
@@ -1979,9 +1224,7 @@ toolRotation.add(
 );
 
 
-/* =========================================================
-   TOOL TIP
-   ========================================================= */
+/* TOOL TIP */
 
 const toolTip =
     cylinder(
@@ -1998,68 +1241,21 @@ toolRotation.add(
 );
 
 
-/* =========================================================
-   TOOL WORLD POSITION
-   ========================================================= */
+/* TOOL POSITION */
 
 const toolWorld =
     new THREE.Vector3();
 
 
-/* =========================================================
-   POSITIONING
-   =========================================================
-
-   La herramienta se coloca de manera que:
-
-   machineZ = 0
-
-   significa que la punta coincide
-   exactamente con TABLE_TOP.
-   ========================================================= */
-
-function setMachineZ(z) {
-
-    machineZ =
-        THREE.MathUtils.clamp(
-            z,
-            LIMITS.Z_MIN,
-            LIMITS.Z_MAX
-        );
-
-}
-
-
-/* =========================================================
-   APPLY MACHINE POSITION
-   ========================================================= */
+/* MACHINE POSITION */
 
 function applyMachinePosition() {
-
-    /*
-     * X
-     */
 
     carriage.position.x =
         machineX;
 
-
-    /*
-     * Y
-     */
-
     gantry.position.z =
         machineY;
-
-
-    /*
-     * Z
-     */
-
-    /*
-     * El eje Z se mueve en
-     * coordenadas 3D inversas.
-     */
 
     const zTravel =
         WORK_AREA.Z -
@@ -2068,19 +1264,12 @@ function applyMachinePosition() {
     zAxis.position.y =
         zTravel;
 
-
-    /*
-     * Protección adicional.
-     */
-
     enforceToolLimit();
 
 }
 
 
-/* =========================================================
-   MACHINE COORDINATES
-   ========================================================= */
+/* MACHINE COORDINATES */
 
 let machineX =
     WORK_AREA.X / 2;
@@ -2089,21 +1278,13 @@ let machineY =
     WORK_AREA.Y / 2;
 
 
-/* =========================================================
-   TOOL SAFETY
-   ========================================================= */
+/* TOOL SAFETY */
 
 function enforceToolLimit() {
 
     toolTip.getWorldPosition(
         toolWorld
     );
-
-
-    /*
-     * La punta jamás puede estar
-     * por debajo de la superficie.
-     */
 
     if (
         toolWorld.y <
@@ -2116,10 +1297,6 @@ function enforceToolLimit() {
 
         zAxis.position.y +=
             correction;
-
-        /*
-         * Volver a calcular Z lógico.
-         */
 
         machineZ =
             THREE.MathUtils.clamp(
@@ -2137,9 +1314,7 @@ function enforceToolLimit() {
 }
 
 
-/* =========================================================
-   CLAMP ALL AXES
-   ========================================================= */
+/* CLAMP */
 
 function clampMachine() {
 
@@ -2150,14 +1325,12 @@ function clampMachine() {
             LIMITS.X_MAX
         );
 
-
     machineY =
         THREE.MathUtils.clamp(
             machineY,
             LIMITS.Y_MIN,
             LIMITS.Y_MAX
         );
-
 
     machineZ =
         THREE.MathUtils.clamp(
@@ -2166,15 +1339,12 @@ function clampMachine() {
             LIMITS.Z_MAX
         );
 
-
     applyMachinePosition();
 
 }
 
 
-/* =========================================================
-   HUD
-   ========================================================= */
+/* HUD */
 
 function updateHUD() {
 
@@ -2206,9 +1376,7 @@ function setStatus(text) {
 }
 
 
-/* =========================================================
-   PATH
-   ========================================================= */
+/* TOOL PATH */
 
 const pathPoints =
     [];
@@ -2248,7 +1416,6 @@ function recordPath() {
         toolWorld.clone()
     );
 
-
     if (
         pathPoints.length >
         1200
@@ -2258,7 +1425,6 @@ function recordPath() {
 
     }
 
-
     pathGeometry.setFromPoints(
         pathPoints
     );
@@ -2266,9 +1432,7 @@ function recordPath() {
 }
 
 
-/* =========================================================
-   MACHINE STATE
-   ========================================================= */
+/* MACHINE STATE */
 
 const state = {
 
@@ -2285,9 +1449,7 @@ const state = {
 };
 
 
-/* =========================================================
-   AUTOMATIC SIMULATION
-   ========================================================= */
+/* AUTOMATIC SIMULATION */
 
 function simulate(delta) {
 
@@ -2301,15 +1463,9 @@ function simulate(delta) {
 
     }
 
-
     state.time +=
         delta *
         state.speed;
-
-
-    /*
-     * Movimiento X
-     */
 
     machineX =
 
@@ -2320,11 +1476,6 @@ function simulate(delta) {
         ) *
         (WORK_AREA.X * 0.38);
 
-
-    /*
-     * Movimiento Y
-     */
-
     machineY =
 
         WORK_AREA.Y / 2 +
@@ -2333,11 +1484,6 @@ function simulate(delta) {
             state.time * 0.45
         ) *
         (WORK_AREA.Y * 0.38);
-
-
-    /*
-     * Movimiento Z
-     */
 
     machineZ =
 
@@ -2351,13 +1497,7 @@ function simulate(delta) {
         ) *
         220;
 
-
     clampMachine();
-
-
-    /*
-     * Rotación del spindle
-     */
 
     toolRotation.rotation.y +=
 
@@ -2365,15 +1505,9 @@ function simulate(delta) {
         18 *
         state.speed;
 
-
     updateHUD();
 
     recordPath();
-
-
-    /*
-     * Ciclo de demostración.
-     */
 
     if (
         state.time >
@@ -2392,9 +1526,7 @@ function simulate(delta) {
 }
 
 
-/* =========================================================
-   START
-   ========================================================= */
+/* START */
 
 document
     .getElementById("start")
@@ -2417,9 +1549,7 @@ document
     };
 
 
-/* =========================================================
-   PAUSE
-   ========================================================= */
+/* PAUSE */
 
 document
     .getElementById("pause")
@@ -2442,9 +1572,7 @@ document
     };
 
 
-/* =========================================================
-   STOP
-   ========================================================= */
+/* STOP */
 
 document
     .getElementById("stop")
@@ -2467,9 +1595,7 @@ document
     };
 
 
-/* =========================================================
-   HOME
-   ========================================================= */
+/* HOME */
 
 function goHome() {
 
@@ -2485,11 +1611,6 @@ function goHome() {
     state.time =
         0;
 
-
-    /*
-     * HOME = esquina de trabajo.
-     */
-
     machineX =
         0;
 
@@ -2499,10 +1620,8 @@ function goHome() {
     machineZ =
         WORK_AREA.Z;
 
-
     toolRotation.rotation.y =
         0;
-
 
     pathPoints.length =
         0;
@@ -2510,7 +1629,6 @@ function goHome() {
     pathGeometry.setFromPoints(
         []
     );
-
 
     clampMachine();
 
@@ -2522,16 +1640,13 @@ function goHome() {
 
 }
 
-
 document
     .getElementById("home")
     .onclick =
     goHome;
 
 
-/* =========================================================
-   SPEED
-   ========================================================= */
+/* SPEED */
 
 document
     .getElementById("speed")
@@ -2546,13 +1661,10 @@ document
     };
 
 
-/* =========================================================
-   JOG STEP
-   ========================================================= */
+/* JOG STEP */
 
 let jogStep =
     0.1;
-
 
 document
     .querySelectorAll(".step")
@@ -2568,7 +1680,6 @@ document
                             button.dataset.step
                         );
 
-
                     document
                         .querySelectorAll(".step")
                         .forEach(
@@ -2581,7 +1692,6 @@ document
                             }
                         );
 
-
                     button.classList.add(
                         "active"
                     );
@@ -2593,9 +1703,7 @@ document
     );
 
 
-/* =========================================================
-   MANUAL JOG
-   ========================================================= */
+/* MANUAL JOG */
 
 function jogAxis(
     axis,
@@ -2611,15 +1719,9 @@ function jogAxis(
     state.stopped =
         false;
 
-
     const distance =
         jogStep *
         direction;
-
-
-    /*
-     * X
-     */
 
     if (
         axis === "x"
@@ -2630,11 +1732,6 @@ function jogAxis(
 
     }
 
-
-    /*
-     * Y
-     */
-
     if (
         axis === "y"
     ) {
@@ -2643,11 +1740,6 @@ function jogAxis(
             distance;
 
     }
-
-
-    /*
-     * Z
-     */
 
     if (
         axis === "z"
@@ -2658,13 +1750,7 @@ function jogAxis(
 
     }
 
-
-    /*
-     * Aplicar límites físicos.
-     */
-
     clampMachine();
-
 
     updateHUD();
 
@@ -2675,9 +1761,7 @@ function jogAxis(
 }
 
 
-/* =========================================================
-   JOG BUTTONS
-   ========================================================= */
+/* JOG BUTTONS */
 
 document
     .querySelectorAll(".jog-btn")
@@ -2705,9 +1789,7 @@ document
     );
 
 
-/* =========================================================
-   JOG HOME
-   ========================================================= */
+/* JOG HOME */
 
 document
     .getElementById("jogHome")
@@ -2717,9 +1799,7 @@ document
     );
 
 
-/* =========================================================
-   KEYBOARD
-   ========================================================= */
+/* KEYBOARD */
 
 window.addEventListener(
     "keydown",
@@ -2734,10 +1814,8 @@ window.addEventListener(
 
         }
 
-
         const key =
             event.key.toLowerCase();
-
 
         if (key === "a") {
 
@@ -2797,16 +1875,12 @@ window.addEventListener(
 );
 
 
-/* =========================================================
-   INITIAL POSITION
-   ========================================================= */
+/* INITIAL POSITION */
 
 goHome();
 
 
-/* =========================================================
-   RESIZE
-   ========================================================= */
+/* RESIZE */
 
 window.addEventListener(
     "resize",
@@ -2827,20 +1901,16 @@ window.addEventListener(
 );
 
 
-/* =========================================================
-   ANIMATION
-   ========================================================= */
+/* ANIMATION */
 
 let previous =
     performance.now();
-
 
 function animate(now) {
 
     requestAnimationFrame(
         animate
     );
-
 
     const delta =
         Math.min(
@@ -2852,18 +1922,14 @@ function animate(now) {
 
         );
 
-
     previous =
         now;
-
 
     simulate(
         delta
     );
 
-
     controls.update();
-
 
     renderer.render(
         scene,
@@ -2871,7 +1937,6 @@ function animate(now) {
     );
 
 }
-
 
 animate(
     performance.now()
@@ -2882,5 +1947,3 @@ animate(
 </body>
 
 </html>
-```
-
