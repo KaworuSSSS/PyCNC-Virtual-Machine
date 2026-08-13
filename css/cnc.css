@@ -1,0 +1,27 @@
+html,
+body {
+
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #0d1115;
+
+}
+
+#viewport {
+
+    width: 100%;
+    height: 100%;
+
+}
+
+canvas {
+
+    display: block;
+
+}
