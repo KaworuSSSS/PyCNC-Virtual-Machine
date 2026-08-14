@@ -292,7 +292,11 @@ import {
 import {
     createMachine
 } from "./js/machine-model.js";
-
+import {
+    loadCNCProgram,
+    getCNCToolpath
+}
+from "./js/cnc-program.js";
 /* SCENE */
 
 const scene =
@@ -1082,6 +1086,7 @@ window.addEventListener(
 /* INITIAL POSITION */
 
 goHome();
+loadCNCProgram();
 
 
 /* RESIZE */
