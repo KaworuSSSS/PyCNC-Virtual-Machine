@@ -55,8 +55,8 @@ class CNCCore {
             Y_MIN: 0,
             Y_MAX: 70,
 
-            Z_MIN: -70,
-            Z_MAX: 70
+            Z_MIN: -5,
+            Z_MAX: 0
 
         };
 
@@ -65,7 +65,8 @@ class CNCCore {
            MACHINE STATE
         ================================================= */
 
-        this.state = "DISCONNECTED";
+        this.state =
+            "DISCONNECTED";
 
 
         /* =================================================
@@ -282,17 +283,13 @@ class CNCCore {
         this.clampPosition();
 
 
-        this.toolpath.push(
+        this.toolpath.push({
 
-            this.position.copy
-                ? this.position.copy()
-                : {
-                    X: this.position.X,
-                    Y: this.position.Y,
-                    Z: this.position.Z
-                }
+            X: this.position.X,
+            Y: this.position.Y,
+            Z: this.position.Z
 
-        );
+        });
 
 
         this.history.push(
@@ -396,10 +393,7 @@ class CNCCore {
             let line of lines
         ) {
 
-
-            /* ---------------------------------------------
-               REMOVE COMMENTS
-               --------------------------------------------- */
+            /* REMOVE COMMENTS */
 
             line =
                 line.replace(
@@ -428,9 +422,7 @@ class CNCCore {
             }
 
 
-            /* ---------------------------------------------
-               TOKENIZE
-               --------------------------------------------- */
+            /* TOKENIZE */
 
             const tokens =
                 line.split(
@@ -468,6 +460,7 @@ class CNCCore {
 
 
                 if (
+
                     [
                         "X",
                         "Y",
@@ -475,8 +468,11 @@ class CNCCore {
                         "F",
                         "S"
                     ].includes(letter)
+
                     &&
+
                     !Number.isNaN(value)
+
                 ) {
 
                     parameters[letter] =
@@ -521,7 +517,6 @@ class CNCCore {
             of commands
         ) {
 
-
             const gcode =
                 command.command;
 
@@ -530,9 +525,7 @@ class CNCCore {
                 command.parameters || {};
 
 
-            /* ---------------------------------------------
-               M0
-               --------------------------------------------- */
+            /* M0 */
 
             if (
                 gcode === "M0"
@@ -540,9 +533,11 @@ class CNCCore {
 
                 movements.push({
 
-                    command: "M0",
+                    command:
+                        "M0",
 
-                    action: "pause"
+                    action:
+                        "pause"
 
                 });
 
@@ -552,9 +547,7 @@ class CNCCore {
             }
 
 
-            /* ---------------------------------------------
-               M2
-               --------------------------------------------- */
+            /* M2 */
 
             if (
                 gcode === "M2"
@@ -562,7 +555,8 @@ class CNCCore {
 
                 movements.push({
 
-                    command: "M2",
+                    command:
+                        "M2",
 
                     action:
                         "program_end"
@@ -575,9 +569,7 @@ class CNCCore {
             }
 
 
-            /* ---------------------------------------------
-               M3
-               --------------------------------------------- */
+            /* M3 */
 
             if (
                 gcode === "M3"
@@ -585,7 +577,8 @@ class CNCCore {
 
                 movements.push({
 
-                    command: "M3",
+                    command:
+                        "M3",
 
                     spindle_speed:
                         parameters.S ?? null
@@ -598,9 +591,7 @@ class CNCCore {
             }
 
 
-            /* ---------------------------------------------
-               M5
-               --------------------------------------------- */
+            /* M5 */
 
             if (
                 gcode === "M5"
@@ -608,7 +599,8 @@ class CNCCore {
 
                 movements.push({
 
-                    command: "M5",
+                    command:
+                        "M5",
 
                     action:
                         "spindle_stop"
@@ -621,9 +613,7 @@ class CNCCore {
             }
 
 
-            /* ---------------------------------------------
-               G90
-               --------------------------------------------- */
+            /* G90 */
 
             if (
                 gcode === "G90"
@@ -632,15 +622,12 @@ class CNCCore {
                 this.coordinateMode =
                     "absolute";
 
-
                 continue;
 
             }
 
 
-            /* ---------------------------------------------
-               G91
-               --------------------------------------------- */
+            /* G91 */
 
             if (
                 gcode === "G91"
@@ -649,15 +636,12 @@ class CNCCore {
                 this.coordinateMode =
                     "relative";
 
-
                 continue;
 
             }
 
 
-            /* ---------------------------------------------
-               G20
-               --------------------------------------------- */
+            /* G20 */
 
             if (
                 gcode === "G20"
@@ -666,15 +650,12 @@ class CNCCore {
                 this.units =
                     "inch";
 
-
                 continue;
 
             }
 
 
-            /* ---------------------------------------------
-               G21
-               --------------------------------------------- */
+            /* G21 */
 
             if (
                 gcode === "G21"
@@ -683,15 +664,12 @@ class CNCCore {
                 this.units =
                     "mm";
 
-
                 continue;
 
             }
 
 
-            /* ---------------------------------------------
-               G92
-               --------------------------------------------- */
+            /* G92 */
 
             if (
                 gcode === "G92"
@@ -720,9 +698,7 @@ class CNCCore {
             }
 
 
-            /* ---------------------------------------------
-               FEED RATE
-               --------------------------------------------- */
+            /* FEED RATE */
 
             if (
                 parameters.F
@@ -735,9 +711,7 @@ class CNCCore {
             }
 
 
-            /* ---------------------------------------------
-               MOVEMENT
-               --------------------------------------------- */
+            /* MOVEMENT */
 
             const hasMovement =
 
@@ -787,9 +761,7 @@ class CNCCore {
                     parameters[axis];
 
 
-                /* -----------------------------------------
-                   INCH → MM
-                   ----------------------------------------- */
+                /* INCH TO MM */
 
                 if (
                     this.units === "inch"
@@ -801,9 +773,7 @@ class CNCCore {
                 }
 
 
-                /* -----------------------------------------
-                   ABSOLUTE
-                   ----------------------------------------- */
+                /* ABSOLUTE */
 
                 if (
                     this.coordinateMode
@@ -816,9 +786,7 @@ class CNCCore {
                 }
 
 
-                /* -----------------------------------------
-                   RELATIVE
-                   ----------------------------------------- */
+                /* RELATIVE */
 
                 else {
 
@@ -857,10 +825,14 @@ class CNCCore {
                 },
 
                 ...(this.feedRate !== null
+
                     ? {
+
                         feed_rate:
                             this.feedRate
+
                     }
+
                     : {})
 
             });
@@ -886,8 +858,6 @@ class CNCCore {
                 gcode
             );
 
-
-        /* Reset planner */
 
         this.position = {
 
@@ -916,8 +886,6 @@ class CNCCore {
             );
 
 
-        /* Reset job */
-
         this.currentLine =
             0;
 
@@ -937,8 +905,6 @@ class CNCCore {
         this.stopped =
             false;
 
-
-        /* Reset execution position */
 
         this.position = {
 
@@ -972,10 +938,7 @@ class CNCCore {
         command
     ) {
 
-
-        /* ---------------------------------------------
-           M0
-           --------------------------------------------- */
+        /* M0 */
 
         if (
             command.command === "M0"
@@ -996,9 +959,7 @@ class CNCCore {
         }
 
 
-        /* ---------------------------------------------
-           M2
-           --------------------------------------------- */
+        /* M2 */
 
         if (
             command.command === "M2"
@@ -1020,9 +981,7 @@ class CNCCore {
         }
 
 
-        /* ---------------------------------------------
-           M3
-           --------------------------------------------- */
+        /* M3 */
 
         if (
             command.command === "M3"
@@ -1041,9 +1000,7 @@ class CNCCore {
         }
 
 
-        /* ---------------------------------------------
-           M5
-           --------------------------------------------- */
+        /* M5 */
 
         if (
             command.command === "M5"
@@ -1062,9 +1019,7 @@ class CNCCore {
         }
 
 
-        /* ---------------------------------------------
-           MOVEMENT
-           --------------------------------------------- */
+        /* MOVEMENT */
 
         if (
             command.target
@@ -1151,9 +1106,11 @@ class CNCCore {
 
 
         while (
+
             this.currentLine
             <
             this.movements.length
+
         ) {
 
             const command =
@@ -1263,9 +1220,11 @@ class CNCCore {
 
 
         while (
+
             this.currentLine
             <
             this.movements.length
+
         ) {
 
             const command =
@@ -1415,6 +1374,7 @@ class CNCCore {
         this.progress =
 
             (
+
                 this.currentLine /
 
                 this.movements.length
@@ -1439,11 +1399,14 @@ class CNCCore {
 
             position: {
 
-                X: this.position.X,
+                X:
+                    this.position.X,
 
-                Y: this.position.Y,
+                Y:
+                    this.position.Y,
 
-                Z: this.position.Z
+                Z:
+                    this.position.Z
 
             },
 
@@ -1481,15 +1444,20 @@ class CNCCore {
     getToolpath() {
 
         return this.toolpath.map(
+
             point => ({
 
-                X: point.X,
+                X:
+                    point.X,
 
-                Y: point.Y,
+                Y:
+                    point.Y,
 
-                Z: point.Z
+                Z:
+                    point.Z
 
             })
+
         );
 
     }
@@ -1511,7 +1479,6 @@ window.CNCCore =
 
 window.testCNC =
     function () {
-
 
         const cnc =
             new CNCCore();
