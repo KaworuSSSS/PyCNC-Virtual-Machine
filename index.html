@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>PyCNC Studio</title>
+<title>PyCNC Virtual Machine</title>
 
 <link rel="stylesheet" href="css/cnc.css">
 
@@ -14,12 +14,22 @@
 
 <body>
 
+
+<!-- =========================================================
+     VIEWPORT
+========================================================= -->
+
 <div id="viewport"></div>
+
+
+<!-- =========================================================
+     HUD
+========================================================= -->
 
 <div id="hud">
 
     <div class="title">
-        PyCNC Studio
+        PyCNC Virtual Machine
     </div>
 
     <div class="subtitle">
@@ -28,9 +38,12 @@
 
     <div class="separator"></div>
 
+
     <div class="coordinate">
 
-        <span class="axis-x">X</span>
+        <span class="axis-x">
+            X
+        </span>
 
         <span>
             <b id="x">0.00</b> mm
@@ -38,9 +51,12 @@
 
     </div>
 
+
     <div class="coordinate">
 
-        <span class="axis-y">Y</span>
+        <span class="axis-y">
+            Y
+        </span>
 
         <span>
             <b id="y">0.00</b> mm
@@ -48,9 +64,12 @@
 
     </div>
 
+
     <div class="coordinate">
 
-        <span class="axis-z">Z</span>
+        <span class="axis-z">
+            Z
+        </span>
 
         <span>
             <b id="z">0.00</b> mm
@@ -58,7 +77,9 @@
 
     </div>
 
+
     <div class="separator"></div>
+
 
     <div class="status">
 
@@ -73,31 +94,41 @@
 </div>
 
 
+<!-- =========================================================
+     MACHINE CONTROL
+========================================================= -->
+
 <div id="controls">
 
     <div class="control-title">
         MACHINE CONTROL
     </div>
 
+
     <button id="start">
         ▶ START
     </button>
+
 
     <button id="pause">
         Ⅱ PAUSE
     </button>
 
+
     <button id="stop">
         ■ STOP
     </button>
+
 
     <button id="home">
         ⌂ HOME
     </button>
 
+
     <label>
         VELOCIDAD
     </label>
+
 
     <input
         id="speed"
@@ -111,17 +142,23 @@
 </div>
 
 
+<!-- =========================================================
+     MANUAL JOG
+========================================================= -->
+
 <div id="jog">
 
     <div class="control-title">
         MANUAL JOG
     </div>
 
+
     <div class="jog-step">
 
         <span>
             STEP
         </span>
+
 
         <button
             class="step active"
@@ -130,12 +167,14 @@
             0.1
         </button>
 
+
         <button
             class="step"
             data-step="1"
         >
             1
         </button>
+
 
         <button
             class="step"
@@ -144,15 +183,18 @@
             10
         </button>
 
+
         <span>
             mm
         </span>
 
     </div>
 
+
     <div class="jog-grid">
 
         <div></div>
+
 
         <button
             class="jog-btn y"
@@ -162,7 +204,9 @@
             Y+
         </button>
 
+
         <div></div>
+
 
         <button
             class="jog-btn x"
@@ -172,12 +216,14 @@
             X−
         </button>
 
+
         <button
             class="home-mini"
             id="jogHome"
         >
             HOME
         </button>
+
 
         <button
             class="jog-btn x"
@@ -187,7 +233,9 @@
             X+
         </button>
 
+
         <div></div>
+
 
         <button
             class="jog-btn y"
@@ -197,9 +245,11 @@
             Y−
         </button>
 
+
         <div></div>
 
     </div>
+
 
     <div class="z-controls">
 
@@ -210,6 +260,7 @@
         >
             Z+
         </button>
+
 
         <button
             class="jog-btn z"
@@ -224,6 +275,10 @@
 </div>
 
 
+<!-- =========================================================
+     HELP
+========================================================= -->
+
 <div id="help">
 
     Arrastra: rotar<br>
@@ -233,6 +288,10 @@
 
 </div>
 
+
+<!-- =========================================================
+     ERROR
+========================================================= -->
 
 <div id="error">
 
@@ -245,6 +304,10 @@
 </div>
 
 
+<!-- =========================================================
+     THREE.JS IMPORT MAP
+========================================================= -->
+
 <script type="importmap">
 
 {
@@ -256,14 +319,31 @@
 
 </script>
 
+
+<!-- =========================================================
+     CONFIGURACIÓN GLOBAL
+========================================================= -->
+
 <script src="js/machine-config.js"></script>
+
 <script src="js/error-handler.js"></script>
-<script src="js/machine-3d.js"></script>
+
+
+<!-- =========================================================
+     CNC CORE
+========================================================= -->
 
 <script src="js/cnc-core.js"></script>
+
+
+<!-- =========================================================
+     MAIN MODULE
+========================================================= -->
+
 <script type="module">
 
 import * as THREE from "three";
+
 
 import {
     OrbitControls
@@ -271,41 +351,39 @@ import {
 from
 "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
 
-import {
-    
-    box,
-    cylinder,
-    addBox
-} from "./js/geometry.js";
-import {
-    aluminum,
-    aluminumDark,
-    aluminumLight,
-    black,
-    steel,
-    yellow,
-    workMaterial
-} from "./js/materials.js";
+
 import {
     setupLights
-} from "./js/lights.js";
+}
+from "./js/lights.js";
+
+
 import {
     createMachine
-} from "./js/machine-model.js";
+}
+from "./js/machine-model.js";
+
+
 import {
     loadCNCProgram,
     getCNCToolpath
 }
 from "./js/cnc-program.js";
-/* SCENE */
+
+
+/* =========================================================
+   SCENE
+========================================================= */
 
 const scene =
     new THREE.Scene();
+
 
 scene.background =
     new THREE.Color(
         0x0d1115
     );
+
 
 scene.fog =
     new THREE.Fog(
@@ -315,7 +393,9 @@ scene.fog =
     );
 
 
-/* CAMERA */
+/* =========================================================
+   CAMERA
+========================================================= */
 
 const camera =
     new THREE.PerspectiveCamera(
@@ -331,6 +411,7 @@ const camera =
 
     );
 
+
 camera.position.set(
     1450,
     1200,
@@ -338,7 +419,9 @@ camera.position.set(
 );
 
 
-/* RENDERER */
+/* =========================================================
+   RENDERER
+========================================================= */
 
 const renderer =
     new THREE.WebGLRenderer({
@@ -347,26 +430,34 @@ const renderer =
 
     });
 
+
 renderer.setPixelRatio(
+
     Math.min(
         devicePixelRatio,
         2
     )
+
 );
+
 
 renderer.setSize(
     innerWidth,
     innerHeight
 );
 
+
 renderer.shadowMap.enabled =
     true;
+
 
 renderer.shadowMap.type =
     THREE.PCFSoftShadowMap;
 
+
 renderer.outputColorSpace =
     THREE.SRGBColorSpace;
+
 
 document
     .getElementById("viewport")
@@ -375,7 +466,9 @@ document
     );
 
 
-/* CAMERA CONTROLS */
+/* =========================================================
+   CAMERA CONTROLS
+========================================================= */
 
 const controls =
     new OrbitControls(
@@ -383,51 +476,44 @@ const controls =
         renderer.domElement
     );
 
+
 controls.target.set(
+
     WORK_AREA.X / 2,
     450,
     WORK_AREA.Y / 2
+
 );
+
 
 controls.enableDamping =
     true;
 
+
 controls.dampingFactor =
     0.055;
 
+
 controls.minDistance =
     500;
+
 
 controls.maxDistance =
     3500;
 
 
-/* LIGHTS */
-
-
-
+/* =========================================================
+   LIGHTS
+========================================================= */
 
 setupLights(
     scene
 );
 
-/* MATERIALS */
 
-
-
-
-/* GEOMETRY */
-
-
-
-
-
-
-
-
-
-
-/* MACHINE */
+/* =========================================================
+   MACHINE
+========================================================= */
 
 const {
 
@@ -445,54 +531,66 @@ const {
 } = createMachine(
     scene
 );
+
+
+/* =========================================================
+   MACHINE POSITION
+========================================================= */
+
+let machineX = 0;
+
+let machineY = 0;
+
 let machineZ =
     WORK_AREA.Z;
 
 
-/* TOOL POSITION */
+/* =========================================================
+   TOOL WORLD POSITION
+========================================================= */
 
 const toolWorld =
     new THREE.Vector3();
 
 
-/* MACHINE POSITION */
+/* =========================================================
+   MACHINE POSITION
+========================================================= */
 
 function applyMachinePosition() {
 
     carriage.position.x =
         machineX;
 
+
     gantry.position.z =
         machineY;
+
 
     const zTravel =
         WORK_AREA.Z -
         machineZ;
 
+
     zAxis.position.y =
         zTravel;
+
 
     enforceToolLimit();
 
 }
 
 
-/* MACHINE COORDINATES */
-
-let machineX =
-    WORK_AREA.X / 2;
-
-let machineY =
-    WORK_AREA.Y / 2;
-
-
-/* TOOL SAFETY */
+/* =========================================================
+   TOOL SAFETY
+========================================================= */
 
 function enforceToolLimit() {
 
     toolTip.getWorldPosition(
         toolWorld
     );
+
 
     if (
         toolWorld.y <
@@ -503,8 +601,10 @@ function enforceToolLimit() {
             TABLE_TOP -
             toolWorld.y;
 
+
         zAxis.position.y +=
             correction;
+
 
         machineZ =
             THREE.MathUtils.clamp(
@@ -522,37 +622,53 @@ function enforceToolLimit() {
 }
 
 
-/* CLAMP */
+/* =========================================================
+   CLAMP MACHINE
+========================================================= */
 
 function clampMachine() {
 
     machineX =
         THREE.MathUtils.clamp(
+
             machineX,
+
             LIMITS.X_MIN,
             LIMITS.X_MAX
+
         );
+
 
     machineY =
         THREE.MathUtils.clamp(
+
             machineY,
+
             LIMITS.Y_MIN,
             LIMITS.Y_MAX
+
         );
+
 
     machineZ =
         THREE.MathUtils.clamp(
+
             machineZ,
+
             LIMITS.Z_MIN,
             LIMITS.Z_MAX
+
         );
+
 
     applyMachinePosition();
 
 }
 
 
-/* HUD */
+/* =========================================================
+   HUD
+========================================================= */
 
 function updateHUD() {
 
@@ -561,10 +677,12 @@ function updateHUD() {
         .textContent =
         machineX.toFixed(2);
 
+
     document
         .getElementById("y")
         .textContent =
         machineY.toFixed(2);
+
 
     document
         .getElementById("z")
@@ -574,7 +692,13 @@ function updateHUD() {
 }
 
 
-function setStatus(text) {
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(
+    text
+) {
 
     document
         .getElementById("statusText")
@@ -584,13 +708,17 @@ function setStatus(text) {
 }
 
 
-/* TOOL PATH */
+/* =========================================================
+   TOOLPATH VISUAL
+========================================================= */
 
 const pathPoints =
     [];
 
+
 const pathGeometry =
     new THREE.BufferGeometry();
+
 
 const pathMaterial =
     new THREE.LineBasicMaterial({
@@ -603,16 +731,25 @@ const pathMaterial =
 
     });
 
+
 const toolPath =
     new THREE.Line(
+
         pathGeometry,
+
         pathMaterial
+
     );
+
 
 scene.add(
     toolPath
 );
 
+
+/* =========================================================
+   RECORD PATH
+========================================================= */
 
 function recordPath() {
 
@@ -620,9 +757,11 @@ function recordPath() {
         toolWorld
     );
 
+
     pathPoints.push(
         toolWorld.clone()
     );
+
 
     if (
         pathPoints.length >
@@ -633,6 +772,7 @@ function recordPath() {
 
     }
 
+
     pathGeometry.setFromPoints(
         pathPoints
     );
@@ -640,7 +780,99 @@ function recordPath() {
 }
 
 
-/* MACHINE STATE */
+/* =========================================================
+   CNC PROGRAM
+========================================================= */
+
+let cncProgram =
+    null;
+
+
+let cncToolpath =
+    [];
+
+
+let cncPointIndex =
+    0;
+
+
+let cncTarget =
+    null;
+
+
+/* =========================================================
+   LOAD PROGRAM
+========================================================= */
+
+async function initializeCNCProgram() {
+
+    cncProgram =
+        await loadCNCProgram();
+
+
+    if (
+        !cncProgram
+    ) {
+
+        setStatus(
+            "PROGRAM ERROR"
+        );
+
+        return;
+
+    }
+
+
+    cncToolpath =
+        getCNCToolpath();
+
+
+    cncPointIndex =
+        0;
+
+
+    cncTarget =
+        null;
+
+
+    console.log(
+        "========================================"
+    );
+
+
+    console.log(
+        "CNC PROGRAM READY"
+    );
+
+
+    console.log(
+        "STATUS:",
+        cncProgram.status
+    );
+
+
+    console.log(
+        "TOOLPATH:",
+        cncToolpath
+    );
+
+
+    console.log(
+        "POINTS:",
+        cncToolpath.length
+    );
+
+
+    setStatus(
+        "READY"
+    );
+
+}
+
+
+/* =========================================================
+   MACHINE STATE
+========================================================= */
 
 const state = {
 
@@ -650,16 +882,18 @@ const state = {
 
     stopped: false,
 
-    time: 0,
-
     speed: 1
 
 };
 
 
-/* AUTOMATIC SIMULATION */
+/* =========================================================
+   CNC EXECUTION
+========================================================= */
 
-function simulate(delta) {
+function executeCNCProgram(
+    delta
+) {
 
     if (
         !state.running ||
@@ -671,41 +905,185 @@ function simulate(delta) {
 
     }
 
-    state.time +=
-        delta *
-        state.speed;
 
-    machineX =
+    if (
+        !cncToolpath ||
+        cncToolpath.length === 0
+    ) {
 
-        WORK_AREA.X / 2 +
+        return;
 
-        Math.sin(
-            state.time * 0.7
-        ) *
-        (WORK_AREA.X * 0.38);
+    }
 
-    machineY =
 
-        WORK_AREA.Y / 2 +
+    /* ---------------------------------------------
+       FINISHED
+    --------------------------------------------- */
 
-        Math.sin(
-            state.time * 0.45
-        ) *
-        (WORK_AREA.Y * 0.38);
+    if (
+        cncPointIndex >=
+        cncToolpath.length
+    ) {
 
-    machineZ =
+        state.running =
+            false;
 
-        120 +
 
-        Math.max(
-            0,
-            Math.sin(
-                state.time * 1.1
-            )
-        ) *
-        220;
+        cncTarget =
+            null;
+
+
+        setStatus(
+            "COMPLETED"
+        );
+
+
+        return;
+
+    }
+
+
+    /* ---------------------------------------------
+       GET TARGET
+    --------------------------------------------- */
+
+    if (
+        !cncTarget
+    ) {
+
+        cncTarget =
+            cncToolpath[
+                cncPointIndex
+            ];
+
+    }
+
+
+    /* ---------------------------------------------
+       SPEED
+    --------------------------------------------- */
+
+    const speed =
+
+        80 *
+
+        state.speed *
+
+        delta;
+
+
+    /* ---------------------------------------------
+       X
+    --------------------------------------------- */
+
+    const dx =
+
+        cncTarget.X -
+        machineX;
+
+
+    if (
+        Math.abs(dx) >
+        speed
+    ) {
+
+        machineX +=
+
+            Math.sign(dx) *
+            speed;
+
+    }
+    else {
+
+        machineX =
+            cncTarget.X;
+
+    }
+
+
+    /* ---------------------------------------------
+       Y
+    --------------------------------------------- */
+
+    const dy =
+
+        cncTarget.Y -
+        machineY;
+
+
+    if (
+        Math.abs(dy) >
+        speed
+    ) {
+
+        machineY +=
+
+            Math.sign(dy) *
+            speed;
+
+    }
+    else {
+
+        machineY =
+            cncTarget.Y;
+
+    }
+
+
+    /* ---------------------------------------------
+       Z
+
+       CNC PROGRAM:
+
+       Z = 0  -> table
+
+       Z = -5 -> 5 mm cutting depth
+
+       Visual machine uses a positive travel
+       coordinate, therefore we convert it.
+    --------------------------------------------- */
+
+    const targetVisualZ =
+
+        WORK_AREA.Z +
+        cncTarget.Z;
+
+
+    const dz =
+
+        targetVisualZ -
+        machineZ;
+
+
+    if (
+        Math.abs(dz) >
+        speed
+    ) {
+
+        machineZ +=
+
+            Math.sign(dz) *
+            speed;
+
+    }
+    else {
+
+        machineZ =
+            targetVisualZ;
+
+    }
+
+
+    /* ---------------------------------------------
+       LIMITS
+    --------------------------------------------- */
 
     clampMachine();
+
+
+    /* ---------------------------------------------
+       SPINDLE ROTATION
+    --------------------------------------------- */
 
     toolRotation.rotation.y +=
 
@@ -713,20 +1091,76 @@ function simulate(delta) {
         18 *
         state.speed;
 
+
+    /* ---------------------------------------------
+       HUD
+    --------------------------------------------- */
+
     updateHUD();
+
+
+    /* ---------------------------------------------
+       TOOLPATH
+    --------------------------------------------- */
 
     recordPath();
 
+
+    /* ---------------------------------------------
+       TARGET REACHED
+    --------------------------------------------- */
+
+    const reached =
+
+        Math.abs(
+            machineX -
+            cncTarget.X
+        ) < 0.01 &&
+
+        Math.abs(
+            machineY -
+            cncTarget.Y
+        ) < 0.01 &&
+
+        Math.abs(
+            machineZ -
+            targetVisualZ
+        ) < 0.01;
+
+
     if (
-        state.time >
-        Math.PI * 10
+        reached
     ) {
 
-        state.running =
-            false;
+        machineX =
+            cncTarget.X;
 
-        setStatus(
-            "COMPLETED"
+
+        machineY =
+            cncTarget.Y;
+
+
+        machineZ =
+            targetVisualZ;
+
+
+        cncPointIndex++;
+
+
+        cncTarget =
+            null;
+
+
+        console.log(
+
+            "CNC POINT:",
+
+            cncPointIndex,
+
+            "/",
+
+            cncToolpath.length
+
         );
 
     }
@@ -734,21 +1168,54 @@ function simulate(delta) {
 }
 
 
-/* START */
+/* =========================================================
+   START
+========================================================= */
 
 document
     .getElementById("start")
     .onclick =
     () => {
 
+        if (
+            !cncToolpath ||
+            cncToolpath.length === 0
+        ) {
+
+            setStatus(
+                "NO PROGRAM"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            cncPointIndex >=
+            cncToolpath.length
+        ) {
+
+            setStatus(
+                "COMPLETED"
+            );
+
+            return;
+
+        }
+
+
         state.running =
             true;
+
 
         state.paused =
             false;
 
+
         state.stopped =
             false;
+
 
         setStatus(
             "RUNNING"
@@ -757,7 +1224,9 @@ document
     };
 
 
-/* PAUSE */
+/* =========================================================
+   PAUSE
+========================================================= */
 
 document
     .getElementById("pause")
@@ -768,8 +1237,13 @@ document
             state.running
         ) {
 
+            state.running =
+                false;
+
+
             state.paused =
                 true;
+
 
             setStatus(
                 "PAUSED"
@@ -780,7 +1254,9 @@ document
     };
 
 
-/* STOP */
+/* =========================================================
+   STOP
+========================================================= */
 
 document
     .getElementById("stop")
@@ -790,11 +1266,22 @@ document
         state.running =
             false;
 
+
         state.paused =
             false;
 
+
         state.stopped =
             true;
+
+
+        cncPointIndex =
+            0;
+
+
+        cncTarget =
+            null;
+
 
         setStatus(
             "STOPPED"
@@ -803,44 +1290,62 @@ document
     };
 
 
-/* HOME */
+/* =========================================================
+   HOME
+========================================================= */
 
 function goHome() {
 
     state.running =
         false;
 
+
     state.paused =
         false;
+
 
     state.stopped =
         false;
 
-    state.time =
+
+    cncPointIndex =
         0;
+
+
+    cncTarget =
+        null;
+
 
     machineX =
         0;
 
+
     machineY =
         0;
+
 
     machineZ =
         WORK_AREA.Z;
 
+
     toolRotation.rotation.y =
         0;
 
+
     pathPoints.length =
         0;
+
 
     pathGeometry.setFromPoints(
         []
     );
 
+
     clampMachine();
 
+
     updateHUD();
+
 
     setStatus(
         "READY"
@@ -848,13 +1353,16 @@ function goHome() {
 
 }
 
+
 document
     .getElementById("home")
     .onclick =
     goHome;
 
 
-/* SPEED */
+/* =========================================================
+   SPEED
+========================================================= */
 
 document
     .getElementById("speed")
@@ -869,18 +1377,24 @@ document
     };
 
 
-/* JOG STEP */
+/* =========================================================
+   JOG STEP
+========================================================= */
 
 let jogStep =
     0.1;
 
+
 document
     .querySelectorAll(".step")
     .forEach(
+
         button => {
 
             button.addEventListener(
+
                 "click",
+
                 () => {
 
                     jogStep =
@@ -888,9 +1402,11 @@ document
                             button.dataset.step
                         );
 
+
                     document
                         .querySelectorAll(".step")
                         .forEach(
+
                             b => {
 
                                 b.classList.remove(
@@ -898,20 +1414,26 @@ document
                                 );
 
                             }
+
                         );
+
 
                     button.classList.add(
                         "active"
                     );
 
                 }
+
             );
 
         }
+
     );
 
 
-/* MANUAL JOG */
+/* =========================================================
+   MANUAL JOG
+========================================================= */
 
 function jogAxis(
     axis,
@@ -921,15 +1443,24 @@ function jogAxis(
     state.running =
         false;
 
+
     state.paused =
         false;
+
 
     state.stopped =
         false;
 
+
+    cncTarget =
+        null;
+
+
     const distance =
+
         jogStep *
         direction;
+
 
     if (
         axis === "x"
@@ -940,6 +1471,7 @@ function jogAxis(
 
     }
 
+
     if (
         axis === "y"
     ) {
@@ -948,6 +1480,7 @@ function jogAxis(
             distance;
 
     }
+
 
     if (
         axis === "z"
@@ -958,9 +1491,12 @@ function jogAxis(
 
     }
 
+
     clampMachine();
 
+
     updateHUD();
+
 
     setStatus(
         "JOG"
@@ -969,15 +1505,20 @@ function jogAxis(
 }
 
 
-/* JOG BUTTONS */
+/* =========================================================
+   JOG BUTTONS
+========================================================= */
 
 document
     .querySelectorAll(".jog-btn")
     .forEach(
+
         button => {
 
             button.addEventListener(
+
                 "click",
+
                 () => {
 
                     jogAxis(
@@ -991,26 +1532,37 @@ document
                     );
 
                 }
+
             );
 
         }
+
     );
 
 
-/* JOG HOME */
+/* =========================================================
+   JOG HOME
+========================================================= */
 
 document
     .getElementById("jogHome")
     .addEventListener(
+
         "click",
+
         goHome
+
     );
 
 
-/* KEYBOARD */
+/* =========================================================
+   KEYBOARD
+========================================================= */
 
 window.addEventListener(
+
     "keydown",
+
     event => {
 
         if (
@@ -1022,10 +1574,14 @@ window.addEventListener(
 
         }
 
+
         const key =
             event.key.toLowerCase();
 
-        if (key === "a") {
+
+        if (
+            key === "a"
+        ) {
 
             jogAxis(
                 "x",
@@ -1034,7 +1590,10 @@ window.addEventListener(
 
         }
 
-        if (key === "d") {
+
+        if (
+            key === "d"
+        ) {
 
             jogAxis(
                 "x",
@@ -1043,7 +1602,10 @@ window.addEventListener(
 
         }
 
-        if (key === "w") {
+
+        if (
+            key === "w"
+        ) {
 
             jogAxis(
                 "y",
@@ -1052,7 +1614,10 @@ window.addEventListener(
 
         }
 
-        if (key === "s") {
+
+        if (
+            key === "s"
+        ) {
 
             jogAxis(
                 "y",
@@ -1061,7 +1626,10 @@ window.addEventListener(
 
         }
 
-        if (key === "r") {
+
+        if (
+            key === "r"
+        ) {
 
             jogAxis(
                 "z",
@@ -1070,7 +1638,10 @@ window.addEventListener(
 
         }
 
-        if (key === "f") {
+
+        if (
+            key === "f"
+        ) {
 
             jogAxis(
                 "z",
@@ -1080,48 +1651,70 @@ window.addEventListener(
         }
 
     }
+
 );
 
 
-/* INITIAL POSITION */
+/* =========================================================
+   INITIALIZE
+========================================================= */
 
 goHome();
-loadCNCProgram();
 
 
-/* RESIZE */
+initializeCNCProgram();
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
 
 window.addEventListener(
+
     "resize",
+
     () => {
 
         camera.aspect =
+
             innerWidth /
             innerHeight;
 
+
         camera.updateProjectionMatrix();
 
+
         renderer.setSize(
+
             innerWidth,
             innerHeight
+
         );
 
     }
+
 );
 
 
-/* ANIMATION */
+/* =========================================================
+   ANIMATION
+========================================================= */
 
 let previous =
     performance.now();
 
-function animate(now) {
+
+function animate(
+    now
+) {
 
     requestAnimationFrame(
         animate
     );
 
+
     const delta =
+
         Math.min(
 
             (now - previous) /
@@ -1131,24 +1724,78 @@ function animate(now) {
 
         );
 
+
     previous =
         now;
 
-    simulate(
+
+    executeCNCProgram(
         delta
     );
 
+
     controls.update();
 
+
     renderer.render(
+
         scene,
         camera
+
     );
 
 }
 
+
 animate(
     performance.now()
+);
+
+
+/* =========================================================
+   DEBUG
+========================================================= */
+
+window.getCNCState =
+    function () {
+
+        return {
+
+            program:
+                cncProgram,
+
+            toolpath:
+                cncToolpath,
+
+            point:
+                cncPointIndex,
+
+            target:
+                cncTarget,
+
+            position: {
+
+                X:
+                    machineX,
+
+                Y:
+                    machineY,
+
+                Z:
+                    machineZ
+
+            },
+
+            state:
+                state
+
+        };
+
+    };
+
+
+console.log(
+    "PyCNC Virtual Machine iniciado."
 );
 
 </script>
