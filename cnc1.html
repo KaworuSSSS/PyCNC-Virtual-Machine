@@ -1,0 +1,3598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PyCNC Studio - G-code CNC Simulator</title>
+
+<style>
+*{box-sizing:border-box}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#05080a;
+    color:#dce8ed;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+#cnc{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    cursor:grab;
+}
+
+#cnc:active{
+    cursor:grabbing;
+}
+
+#ui{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+}
+
+.panel{
+    pointer-events:auto;
+    position:absolute;
+    background:rgba(7,12,16,.95);
+    border:1px solid #344b55;
+    border-radius:8px;
+    padding:12px;
+    box-shadow:0 15px 50px rgba(0,0,0,.55);
+}
+
+#left{
+    left:12px;
+    top:12px;
+    width:275px;
+}
+
+#right{
+    right:12px;
+    top:12px;
+    width:330px;
+}
+
+h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:2px;
+}
+
+h2{
+    margin:14px 0 7px;
+    font-size:11px;
+    color:#78909b;
+    letter-spacing:1px;
+}
+
+.small{
+    color:#71838c;
+    font-size:11px;
+    line-height:1.6;
+}
+
+.axes{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:5px;
+}
+
+.axis{
+    background:#0b151a;
+    border:1px solid #293d45;
+    border-radius:5px;
+    padding:8px 3px;
+    text-align:center;
+}
+
+.axis b{
+    display:block;
+    font-size:10px;
+    color:#718791;
+}
+
+.axis span{
+    display:block;
+    margin-top:4px;
+    font-family:monospace;
+    font-size:16px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:5px;
+}
+
+button{
+    border:1px solid #344b55;
+    background:#152229;
+    color:#e5eef1;
+    border-radius:5px;
+    padding:9px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#223640;
+}
+
+.green{background:#15572f}
+.yellow{background:#645017}
+.red{background:#642020}
+.blue{background:#14536c}
+
+.steps{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:5px;
+}
+
+.active{
+    outline:2px solid #49cfff;
+}
+
+.jog{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:5px;
+}
+
+.jog button{
+    height:38px;
+}
+
+textarea{
+    width:100%;
+    height:260px;
+    resize:vertical;
+    background:#04090c;
+    border:1px solid #2d444e;
+    border-radius:5px;
+    color:#bfe9ff;
+    font-family:Consolas,monospace;
+    font-size:12px;
+    padding:8px;
+}
+
+input[type=range]{
+    width:100%;
+}
+
+.info{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px;
+    font-size:11px;
+}
+
+.info span:nth-child(even){
+    text-align:right;
+    font-family:monospace;
+}
+
+.progress{
+    height:7px;
+    margin-top:8px;
+    background:#10191e;
+    border-radius:8px;
+    overflow:hidden;
+}
+
+#bar{
+    height:100%;
+    width:0%;
+    background:#39c8ff;
+}
+
+#message{
+    position:absolute;
+    bottom:14px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:8px 16px;
+    background:rgba(5,10,13,.92);
+    border:1px solid #2d454e;
+    border-radius:5px;
+    font:12px monospace;
+}
+
+#error{
+    display:none;
+    position:fixed;
+    z-index:20;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:min(650px,90vw);
+    max-height:80vh;
+    overflow:auto;
+    padding:20px;
+    background:#230909;
+    border:1px solid #a33d3d;
+    border-radius:8px;
+}
+
+#error pre{
+    white-space:pre-wrap;
+    color:#ffb3b3;
+}
+
+@media(max-width:850px){
+    #left{width:245px}
+    #right{width:290px}
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="cnc"></canvas>
+
+<div id="ui">
+
+<div id="left" class="panel">
+
+<h1>PyCNC Studio</h1>
+
+<div class="small">
+3 AXIS GANTRY CNC
+</div>
+
+<h2>POSICIÓN</h2>
+
+<div class="axes">
+<div class="axis">
+<b>X</b>
+<span id="x">0.00</span>
+</div>
+
+<div class="axis">
+<b>Y</b>
+<span id="y">0.00</span>
+</div>
+
+<div class="axis">
+<b>Z</b>
+<span id="z">70.00</span>
+</div>
+</div>
+
+<h2>ESTADO</h2>
+
+<div class="info">
+<span>Estado</span>
+<span id="state">IDLE</span>
+
+<span>Línea</span>
+<span id="line">0 / 0</span>
+
+<span>Progreso</span>
+<span id="percent">0%</span>
+
+<span>Spindle</span>
+<span id="spindle">OFF</span>
+
+<span>Herramienta</span>
+<span id="tool">T0</span>
+
+<span>Coolant</span>
+<span id="coolant">OFF</span>
+
+<span>Plano</span>
+<span id="plane">G17 XY</span>
+
+<span>Offset</span>
+<span id="offset">G54</span>
+</div>
+
+<div class="progress">
+<div id="bar"></div>
+</div>
+
+<h2>JOG</h2>
+
+<div class="steps">
+<button class="step active" data-step=".1">0.1</button>
+<button class="step" data-step="1">1</button>
+<button class="step" data-step="10">10</button>
+</div>
+
+<br>
+
+<div class="jog">
+
+<div></div>
+<button data-axis="Y" data-dir="1">Y+</button>
+<div></div>
+
+<button data-axis="X" data-dir="-1">X−</button>
+<button onclick="home()">HOME</button>
+<button data-axis="X" data-dir="1">X+</button>
+
+<div></div>
+<button data-axis="Y" data-dir="-1">Y−</button>
+<div></div>
+
+<button data-axis="Z" data-dir="1">Z+</button>
+<button data-axis="Z" data-dir="-1">Z−</button>
+
+</div>
+
+<h2>CÁMARA</h2>
+
+<div class="grid">
+<button onclick="resetCamera()">RESET</button>
+<button onclick="topView()">TOP</button>
+<button onclick="frontView()">FRONT</button>
+<button onclick="sideView()">SIDE</button>
+</div>
+
+<br>
+
+<div class="small">
+🖱 Izquierdo: rotar<br>
+🖱 Derecho: mover<br>
+SHIFT + izquierdo: mover<br>
+🖱 Rueda: zoom
+</div>
+
+</div>
+
+
+<div id="right" class="panel">
+
+<h2 style="margin-top:0">
+CONTROL CNC
+</h2>
+
+<div class="grid">
+
+<button class="green" onclick="start()">▶ START</button>
+<button class="yellow" onclick="pause()">Ⅱ PAUSE</button>
+<button class="red" onclick="stop()">■ STOP</button>
+<button onclick="resetMachine()">RESET</button>
+<button onclick="home()">HOME</button>
+<button class="blue" onclick="loadFile()">LOAD G-CODE</button>
+
+</div>
+
+<input
+id="file"
+type="file"
+accept=".nc,.gcode,.tap,.txt"
+style="display:none"
+>
+
+<h2>G-CODE</h2>
+
+<textarea id="gcode">
+%
+G21 G90 G17
+G0 Z60
+G0 X55 Y10
+
+T1
+M6
+M3 S12000
+M8
+
+G1 Z5 F300
+
+G2 X80 Y35 I0 J25 F800
+G2 X55 Y60 I-25 J0
+G2 X30 Y35 I0 J-25
+G2 X55 Y10 I25 J0
+
+G4 P500
+
+G1 X55 Y10 F800
+G1 Z60
+
+M9
+M5
+
+G0 X0 Y0
+G0 Z70
+
+M30
+%
+</textarea>
+
+<h2>VELOCIDAD SIMULACIÓN</h2>
+
+<input
+id="speed"
+type="range"
+min=".1"
+max="10"
+step=".1"
+value="2"
+>
+
+<div class="small" style="text-align:center">
+<span id="speedValue">2.0</span>x
+</div>
+
+<h2>G-CODE SOPORTADO</h2>
+
+<div class="small">
+
+G0 / G1 → MOVIMIENTO LINEAL<br>
+G2 / G3 → ARCOS<br>
+G17 / G18 / G19 → PLANOS<br>
+I / J / K / R → ARCOS<br>
+G4 → DWELL<br>
+G20 / G21 → UNIDADES<br>
+G90 / G91 → ABSOLUTO / INCREMENTAL<br>
+G53 → COORDENADAS MÁQUINA<br>
+G54–G59 → OFFSETS DE TRABAJO<br>
+G40 / G41 / G42 → COMPENSACIÓN (estado)<br>
+G80 / G81 / G82 / G83 / G84 → CICLOS<br>
+G92 → FIJAR POSICIÓN<br>
+G93 / G94 / G95 → FEED MODE<br>
+M0 / M1 → PAUSA<br>
+M2 / M30 → FIN<br>
+M3 / M4 / M5 → SPINDLE<br>
+M6 / T → HERRAMIENTA<br>
+M7 / M8 / M9 → COOLANT<br>
+F / S / P / Q / R
+
+</div>
+
+</div>
+
+</div>
+
+<div id="message">
+CNC READY
+</div>
+
+<div id="error">
+
+<h3>ERROR CNC</h3>
+
+<pre id="errorText"></pre>
+
+<button onclick="closeError()">CERRAR</button>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+
+/* ============================================================
+   CONFIGURACIÓN
+============================================================ */
+
+const LIMITS = {
+
+    X_MIN:0,
+    X_MAX:110,
+
+    Y_MIN:0,
+    Y_MAX:70,
+
+    Z_MIN:0,
+    Z_MAX:70
+
+};
+
+
+const machine = {
+
+    x:0,
+    y:0,
+    z:70,
+
+    feed:1000,
+
+    units:"mm",
+
+    mode:"absolute",
+
+    plane:"XY",
+
+    feedMode:"G94",
+
+    coordinateSystem:"G54",
+
+    offsets:{
+        G54:{x:0,y:0,z:0},
+        G55:{x:0,y:0,z:0},
+        G56:{x:0,y:0,z:0},
+        G57:{x:0,y:0,z:0},
+        G58:{x:0,y:0,z:0},
+        G59:{x:0,y:0,z:0}
+    },
+
+    compensation:"G40",
+
+    spindle:false,
+    spindleDirection:"CW",
+    rpm:0,
+
+    coolant:"OFF",
+
+    tool:0,
+    pendingTool:0,
+
+    dwellUntil:0,
+    g53Next:false,
+    cycle:null,
+
+    state:"IDLE",
+
+    commands:[],
+    index:0,
+
+    running:false,
+    paused:false,
+
+    progress:0,
+
+    step:1
+
+};
+
+
+/* ============================================================
+   CANVAS
+============================================================ */
+
+const canvas =
+    document.getElementById("cnc");
+
+const ctx =
+    canvas.getContext("2d");
+
+let W = innerWidth;
+let H = innerHeight;
+
+function resize(){
+
+    W = innerWidth;
+    H = innerHeight;
+
+    canvas.width =
+        W * devicePixelRatio;
+
+    canvas.height =
+        H * devicePixelRatio;
+
+    canvas.style.width =
+        W+"px";
+
+    canvas.style.height =
+        H+"px";
+
+    ctx.setTransform(
+        devicePixelRatio,
+        0,
+        0,
+        devicePixelRatio,
+        0,
+        0
+    );
+}
+
+addEventListener(
+    "resize",
+    resize
+);
+
+resize();
+
+
+/* ============================================================
+   CÁMARA
+============================================================ */
+
+const camera = {
+
+    zoom:5,
+
+    yaw:-.65,
+
+    pitch:.48,
+
+    panX:0,
+
+    panY:0
+
+};
+
+
+let mouse = {
+
+    down:false,
+    button:-1,
+    x:0,
+    y:0
+
+};
+
+
+canvas.addEventListener(
+    "mousedown",
+    e=>{
+
+        mouse.down=true;
+        mouse.button=e.button;
+
+        mouse.x=e.clientX;
+        mouse.y=e.clientY;
+
+    }
+);
+
+
+window.addEventListener(
+    "mouseup",
+    ()=>{
+
+        mouse.down=false;
+        mouse.button=-1;
+
+    }
+);
+
+
+window.addEventListener(
+    "mousemove",
+    e=>{
+
+        if(!mouse.down)
+            return;
+
+        const dx =
+            e.clientX-mouse.x;
+
+        const dy =
+            e.clientY-mouse.y;
+
+
+        if(
+            mouse.button===0 &&
+            !e.shiftKey
+        ){
+
+            camera.yaw += dx*.008;
+            camera.pitch += dy*.008;
+
+        }
+
+
+        if(
+            mouse.button===2 ||
+            (
+                mouse.button===0 &&
+                e.shiftKey
+            )
+        ){
+
+            camera.panX += dx;
+            camera.panY += dy;
+
+        }
+
+
+        mouse.x=e.clientX;
+        mouse.y=e.clientY;
+
+    }
+);
+
+
+canvas.addEventListener(
+    "contextmenu",
+    e=>e.preventDefault()
+);
+
+
+canvas.addEventListener(
+    "wheel",
+    e=>{
+
+        e.preventDefault();
+
+        camera.zoom *=
+            e.deltaY<0 ? 1.12 : .88;
+
+        camera.zoom =
+            Math.max(
+                .7,
+                Math.min(
+                    35,
+                    camera.zoom
+                )
+            );
+
+    },
+    {passive:false}
+);
+
+
+function resetCamera(){
+
+    camera.zoom=5;
+    camera.yaw=-.65;
+    camera.pitch=.48;
+    camera.panX=0;
+    camera.panY=0;
+
+}
+
+
+function topView(){
+
+    camera.zoom=6;
+    camera.yaw=0;
+    camera.pitch=0;
+    camera.panX=0;
+    camera.panY=0;
+
+}
+
+
+function frontView(){
+
+    camera.zoom=6;
+    camera.yaw=0;
+    camera.pitch=.55;
+    camera.panX=0;
+    camera.panY=0;
+
+}
+
+
+function sideView(){
+
+    camera.zoom=6;
+    camera.yaw=Math.PI/2;
+    camera.pitch=.55;
+    camera.panX=0;
+    camera.panY=0;
+
+}
+
+
+/* ============================================================
+   PROYECCIÓN
+============================================================ */
+
+function project(x,y,z){
+
+    const cy =
+        Math.cos(camera.yaw);
+
+    const sy =
+        Math.sin(camera.yaw);
+
+    const cp =
+        Math.cos(camera.pitch);
+
+    const sp =
+        Math.sin(camera.pitch);
+
+    const rx=x-55;
+    const ry=y-35;
+    const rz=z-25;
+
+    const xx =
+        rx*cy -
+        ry*sy;
+
+    const yy =
+        rx*sy +
+        ry*cy;
+
+    const py =
+        yy*cp -
+        rz*sp;
+
+    const pz =
+        yy*sp +
+        rz*cp;
+
+    return {
+
+        x:
+            W/2+
+            camera.panX+
+            xx*camera.zoom,
+
+        y:
+            H/2+
+            camera.panY-
+            py*camera.zoom-
+            pz*camera.zoom
+
+    };
+
+}
+
+
+/* ============================================================
+   DIBUJO 3D
+============================================================ */
+
+function line3D(a,b,color,width=1){
+
+    ctx.beginPath();
+
+    ctx.moveTo(a.x,a.y);
+    ctx.lineTo(b.x,b.y);
+
+    ctx.strokeStyle=color;
+    ctx.lineWidth=width;
+
+    ctx.stroke();
+
+}
+
+
+function quad(points,fill,stroke){
+
+    ctx.beginPath();
+
+    points.forEach(
+        (p,i)=>{
+
+            if(i===0)
+                ctx.moveTo(p.x,p.y);
+            else
+                ctx.lineTo(p.x,p.y);
+
+        }
+    );
+
+    ctx.closePath();
+
+    ctx.fillStyle=fill;
+    ctx.fill();
+
+    if(stroke){
+
+        ctx.strokeStyle=stroke;
+        ctx.stroke();
+
+    }
+
+}
+
+
+function box(
+    x1,y1,z1,
+    x2,y2,z2,
+    fill="#444"
+){
+
+    const a=project(x1,y1,z1);
+    const b=project(x2,y1,z1);
+    const c=project(x2,y2,z1);
+    const d=project(x1,y2,z1);
+
+    const e=project(x1,y1,z2);
+    const f=project(x2,y1,z2);
+    const g=project(x2,y2,z2);
+    const h=project(x1,y2,z2);
+
+
+    quad(
+        [a,b,c,d],
+        fill,
+        "#61747c"
+    );
+
+    quad(
+        [e,f,g,h],
+        fill,
+        "#758991"
+    );
+
+    quad(
+        [a,b,f,e],
+        fill,
+        "#52656d"
+    );
+
+    quad(
+        [b,c,g,f],
+        fill,
+        "#3e5058"
+    );
+
+    quad(
+        [c,d,h,g],
+        fill,
+        "#35464d"
+    );
+
+    quad(
+        [d,a,e,h],
+        fill,
+        "#465960"
+    );
+
+}
+
+
+/* ============================================================
+   MÁQUINA
+============================================================ */
+
+function drawMachine(){
+
+    box(
+        -8,-5,-5,
+        118,75,0,
+        "#252f34"
+    );
+
+
+    box(
+        0,0,0,
+        110,70,5,
+        "#303b40"
+    );
+
+
+    for(
+        let y=7;
+        y<70;
+        y+=8
+    ){
+
+        line3D(
+
+            project(
+                2,y,5.1
+            ),
+
+            project(
+                108,y,5.1
+            ),
+
+            "#11191d",
+            3
+
+        );
+
+    }
+
+
+    box(
+        -5,-2,5,
+        3,10,70,
+        "#4c5d64"
+    );
+
+
+    box(
+        107,-2,5,
+        115,10,70,
+        "#4c5d64"
+    );
+
+
+    const py=machine.y;
+
+
+    box(
+        -5,
+        py-6,
+        57,
+
+        115,
+        py+6,
+        70,
+
+        "#596a71"
+    );
+
+
+    line3D(
+
+        project(
+            0,
+            py,
+            55
+        ),
+
+        project(
+            110,
+            py,
+            55
+        ),
+
+        "#9aaab0",
+        5
+
+    );
+
+
+    const cx=machine.x;
+
+
+    box(
+        cx-10,
+        py-8,
+        48,
+
+        cx+10,
+        py+8,
+        65,
+
+        "#34444b"
+    );
+
+
+    box(
+        cx-6,
+        py-5,
+        18,
+
+        cx+6,
+        py+5,
+        58,
+
+        "#66777e"
+    );
+
+
+    drawSpindle(
+        cx,
+        py,
+        machine.z
+    );
+
+
+    drawScrew(
+        0,py,52,
+        110,py,52
+    );
+
+
+    drawScrew(
+        cx,0,8,
+        cx,70,8
+    );
+
+}
+
+
+function drawScrew(
+    x1,y1,z1,
+    x2,y2,z2
+){
+
+    line3D(
+
+        project(
+            x1,y1,z1
+        ),
+
+        project(
+            x2,y2,z2
+        ),
+
+        "#b8c3c7",
+        3
+
+    );
+
+}
+
+
+function drawSpindle(x,y,z){
+
+    box(
+        x-5,
+        y-5,
+        z,
+
+        x+5,
+        y+5,
+        z+18,
+
+        machine.spindle
+            ? "#60777f"
+            : "#59676c"
+    );
+
+
+    box(
+        x-3,
+        y-3,
+        z-5,
+
+        x+3,
+        y+3,
+        z,
+
+        "#a9b5b9"
+    );
+
+
+    line3D(
+
+        project(
+            x,y,z-5
+        ),
+
+        project(
+            x,y,z-14
+        ),
+
+        machine.spindle
+            ? "#51ff79"
+            : "#d7c36a",
+
+        4
+
+    );
+
+}
+
+
+/* ============================================================
+   TOOLPATH
+============================================================ */
+
+const path=[];
+
+
+function addPath(
+    x,y,z,
+    rapid=false
+){
+
+    path.push({
+        x,y,z,rapid
+    });
+
+    if(path.length>10000)
+        path.shift();
+
+}
+
+
+function drawPath(){
+
+    if(path.length<2)
+        return;
+
+
+    for(
+        let i=1;
+        i<path.length;
+        i++
+    ){
+
+        const a=path[i-1];
+        const b=path[i];
+
+
+        line3D(
+
+            project(
+                a.x,
+                a.y,
+                a.z
+            ),
+
+            project(
+                b.x,
+                b.y,
+                b.z
+            ),
+
+            b.rapid
+                ? "#4e7885"
+                : "#ff5050",
+
+            b.rapid ? 1.5 : 2.5
+
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   PARSER
+============================================================ */
+
+function cleanLine(line){
+
+    return line
+        // Comentarios entre paréntesis. Se permite más de uno.
+        .replace(/\([^)]*\)/g,"")
+        // Comentario con ;
+        .replace(/;.*/,"")
+        .trim()
+        .toUpperCase();
+
+}
+
+
+/*
+   Parser modal mejorado.
+
+   Una línea puede contener varios códigos modales:
+   G21 G90 G17
+   Se convierten en comandos independientes y se ejecutan
+   en el mismo orden en que aparecen.
+*/
+function parseLine(raw,line){
+
+    const text=cleanLine(raw);
+
+    if(!text || text==="%")
+        return [];
+
+    const tokens=text.match(
+        /[A-Z][-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][-+]?\d+)?/g
+    );
+
+    if(!tokens)
+        return [];
+
+    const words=[];
+    const p={};
+
+    for(const token of tokens){
+
+        const letter=token[0];
+
+        const value=parseFloat(
+            token.slice(1)
+        );
+
+        if(Number.isNaN(value))
+            continue;
+
+        words.push({
+            letter,
+            value
+        });
+
+        if([
+            "X","Y","Z",
+            "I","J","K",
+            "F","S","R","P","Q","L","H","D"
+        ].includes(letter)){
+
+            p[letter]=value;
+
+        }
+
+    }
+
+    const commands=[];
+
+    for(const word of words){
+
+        if(word.letter==="G" ||
+           word.letter==="M"){
+
+            commands.push({
+                command:word.letter+word.value,
+                p:{...p},
+                line,
+                raw
+            });
+
+        }
+
+        else if(word.letter==="T"){
+
+            commands.push({
+                command:"T",
+                p:{...p,T:word.value},
+                line,
+                raw
+            });
+
+        }
+
+    }
+
+    /*
+       Si una línea sólo contiene parámetros, por ejemplo:
+       X10 Y20 F500
+       se interpreta como movimiento modal.
+    */
+    if(commands.length===0){
+
+        commands.push({
+            command:null,
+            p,
+            line,
+            raw
+        });
+
+    }
+
+    return commands;
+
+}
+
+
+function parseProgram(text){
+
+    machine.commands=[];
+
+    text
+        .split(/\r?\n/)
+        .forEach((line,i)=>{
+
+            const parsed=parseLine(
+                line,
+                i
+            );
+
+            for(const c of parsed)
+                machine.commands.push(c);
+
+        });
+
+    machine.index=0;
+    machine.progress=0;
+
+    machine.state="LOADED";
+
+    machine.running=false;
+    machine.paused=false;
+
+    path.length=0;
+    motion=null;
+
+    updateUI();
+
+    message(
+        machine.commands.length+
+        " comandos cargados"
+    );
+
+}
+
+/* ============================================================
+   UNIDADES
+============================================================ */
+
+function mm(v){
+
+    return machine.units==="inch"
+        ? v*25.4
+        : v;
+
+}
+
+
+/* ============================================================
+   LIMITES
+============================================================ */
+
+function validate(t){
+
+    const eps=.0001;
+
+
+    if(
+        t.x<LIMITS.X_MIN-eps ||
+        t.x>LIMITS.X_MAX+eps
+    )
+        throw new Error(
+            `X fuera de límites: ${t.x.toFixed(3)}`
+        );
+
+
+    if(
+        t.y<LIMITS.Y_MIN-eps ||
+        t.y>LIMITS.Y_MAX+eps
+    )
+        throw new Error(
+            `Y fuera de límites: ${t.y.toFixed(3)}`
+        );
+
+
+    if(
+        t.z<LIMITS.Z_MIN-eps ||
+        t.z>LIMITS.Z_MAX+eps
+    )
+        throw new Error(
+            `Z fuera de límites: ${t.z.toFixed(3)}`
+        );
+
+}
+
+
+/* ============================================================
+   TARGET LINEAL
+============================================================ */
+
+function activeOffset(){
+
+    return machine.offsets[
+        machine.coordinateSystem
+    ] || {x:0,y:0,z:0};
+
+}
+
+
+function targetFrom(p){
+
+    const t={
+        x:machine.x,
+        y:machine.y,
+        z:machine.z
+    };
+
+    const offset=activeOffset();
+
+    for(const a of ["X","Y","Z"]){
+
+        if(p[a]===undefined)
+            continue;
+
+        const value=mm(p[a]);
+        const key=a.toLowerCase();
+
+        if(machine.mode==="absolute"){
+
+            /*
+               En G54-G59 el programa trabaja en coordenadas
+               de trabajo. El simulador mantiene internamente
+               coordenadas máquina, por eso se suma el offset.
+            */
+            t[key]=value+offset[key];
+
+        }
+        else{
+
+            t[key]+=value;
+
+        }
+
+    }
+
+    return t;
+
+}
+
+
+function programValueToMachine(value,axis){
+
+    const offset=activeOffset();
+
+    return mm(value)+offset[axis];
+
+}
+
+
+/* ============================================================
+   CREAR MOVIMIENTO LINEAL
+============================================================ */
+
+function createLinearMotion(
+    target,
+    rapid
+){
+
+    validate(target);
+
+
+    const from={
+        x:machine.x,
+        y:machine.y,
+        z:machine.z
+    };
+
+
+    const distance=
+        Math.sqrt(
+
+            (target.x-from.x)**2+
+            (target.y-from.y)**2+
+            (target.z-from.z)**2
+
+        );
+
+
+    const feed=
+        rapid
+            ? 5000
+            : Math.max(
+                1,
+                machine.feed
+            );
+
+
+    let duration=
+        distance/feed*60000;
+
+
+    duration=
+        Math.max(
+            60,
+            duration
+        );
+
+
+    duration/=
+        Number(
+            document
+                .getElementById("speed")
+                .value
+        );
+
+
+    return{
+
+        type:"linear",
+
+        from,
+        target,
+
+        rapid,
+
+        duration
+
+    };
+
+}
+
+
+/* ============================================================
+   G2 / G3
+============================================================
+
+   G2 = horario
+   G3 = antihorario
+
+   I = desplazamiento X desde posición inicial
+   J = desplazamiento Y desde posición inicial
+
+   Ejemplo:
+
+   G2 X80 Y35 I0 J25
+
+   significa:
+
+   inicio:
+   X55 Y10
+
+   centro:
+   X55 Y35
+
+   final:
+   X80 Y35
+
+============================================================ */
+
+function arcAxes(){
+
+    if(machine.plane==="XY")
+        return {u:"x",v:"y",normal:"z"};
+
+    if(machine.plane==="XZ")
+        return {u:"x",v:"z",normal:"y"};
+
+    return {u:"y",v:"z",normal:"x"};
+
+}
+
+
+/*
+   Crea G2/G3 usando I/J/K o R.
+
+   I/J/K son incrementales desde el punto inicial.
+   R define el radio. R positivo = arco menor.
+   R negativo = arco mayor.
+*/
+function createArcMotion(target,p,clockwise){
+
+    const axes=arcAxes();
+
+    const start={
+        x:machine.x,
+        y:machine.y,
+        z:machine.z
+    };
+
+    const su=start[axes.u];
+    const sv=start[axes.v];
+
+    const eu=target[axes.u];
+    const ev=target[axes.v];
+
+    const du=eu-su;
+    const dv=ev-sv;
+
+    let cu;
+    let cv;
+    let radius;
+
+    const hasCenter=
+        p.I!==undefined ||
+        p.J!==undefined ||
+        p.K!==undefined;
+
+    if(hasCenter){
+
+        const offsets={
+            x:p.I || 0,
+            y:p.J || 0,
+            z:p.K || 0
+        };
+
+        cu=su+mm(offsets[axes.u]);
+        cv=sv+mm(offsets[axes.v]);
+
+        radius=Math.hypot(
+            su-cu,
+            sv-cv
+        );
+
+    }
+    else if(p.R!==undefined){
+
+        radius=Math.abs(mm(p.R));
+
+        const chord=Math.hypot(
+            du,
+            dv
+        );
+
+        if(chord<=0)
+            throw new Error(
+                "G2/G3 con R requiere un punto final diferente"
+            );
+
+        if(chord>2*radius+0.0001)
+            throw new Error(
+                `Radio R inválido: ${radius.toFixed(3)} mm para cuerda ${chord.toFixed(3)} mm`
+            );
+
+        const midU=(su+eu)/2;
+        const midV=(sv+ev)/2;
+
+        const h=Math.sqrt(
+            Math.max(
+                0,
+                radius*radius-
+                (chord/2)*(chord/2)
+            )
+        );
+
+        /*
+           Dos centros posibles. Elegimos el que corresponde
+           al sentido G2/G3 y al signo de R.
+        */
+        const nx=-dv/chord;
+        const ny= du/chord;
+
+        const candidates=[
+            {
+                u:midU+nx*h,
+                v:midV+ny*h
+            },
+            {
+                u:midU-nx*h,
+                v:midV-ny*h
+            }
+        ];
+
+        function sweepFor(c){
+
+            const a0=Math.atan2(
+                sv-c.v,
+                su-c.u
+            );
+
+            const a1=Math.atan2(
+                ev-c.v,
+                eu-c.u
+            );
+
+            let s;
+
+            if(clockwise){
+
+                s=a0-a1;
+
+                while(s<=0)
+                    s+=Math.PI*2;
+
+            }
+            else{
+
+                s=a1-a0;
+
+                while(s<=0)
+                    s+=Math.PI*2;
+
+            }
+
+            return s;
+
+        }
+
+        const desiredMajor=
+            Number(p.R)<0;
+
+        const scored=candidates.map(c=>({
+            ...c,
+            sweep:sweepFor(c)
+        }));
+
+        const major=scored.filter(
+            c=>c.sweep>Math.PI
+        );
+
+        const minor=scored.filter(
+            c=>c.sweep<=Math.PI
+        );
+
+        const pool=
+            desiredMajor && major.length
+                ? major
+                : !desiredMajor && minor.length
+                    ? minor
+                    : scored;
+
+        const chosen=pool[0];
+
+        cu=chosen.u;
+        cv=chosen.v;
+
+    }
+    else{
+
+        throw new Error(
+            "G2/G3 requiere I/J/K o R"
+        );
+
+    }
+
+    if(!Number.isFinite(radius) || radius<=0){
+
+        radius=Math.hypot(
+            su-cu,
+            sv-cv
+        );
+
+    }
+
+    if(radius<=0)
+        throw new Error(
+            "Radio del arco inválido"
+        );
+
+    const startAngle=Math.atan2(
+        sv-cv,
+        su-cu
+    );
+
+    const endAngle=Math.atan2(
+        ev-cv,
+        eu-cu
+    );
+
+    let sweep;
+
+    if(
+        Math.abs(du)<0.000001 &&
+        Math.abs(dv)<0.000001
+    ){
+
+        /*
+           Con I/J/K y mismo inicio/final:
+           círculo completo.
+        */
+        sweep=Math.PI*2;
+
+    }
+    else if(clockwise){
+
+        sweep=startAngle-endAngle;
+
+        while(sweep<=0)
+            sweep+=Math.PI*2;
+
+    }
+    else{
+
+        sweep=endAngle-startAngle;
+
+        while(sweep<=0)
+            sweep+=Math.PI*2;
+
+    }
+
+    /*
+       R positivo debe representar el arco menor.
+       R negativo el mayor.
+    */
+    if(
+        p.R!==undefined &&
+        Math.abs(du)+Math.abs(dv)>0
+    ){
+
+        const wantMajor=Number(p.R)<0;
+
+        if(
+            wantMajor &&
+            sweep<Math.PI
+        )
+            sweep=2*Math.PI-sweep;
+
+        if(
+            !wantMajor &&
+            sweep>Math.PI
+        )
+            sweep=2*Math.PI-sweep;
+
+    }
+
+    const arcLength=
+        radius*Math.abs(sweep);
+
+    const segments=Math.max(
+        16,
+        Math.ceil(
+            arcLength*
+            Math.max(2,Number(camera.zoom)||5)
+        )
+    );
+
+    const points=[];
+
+    for(let i=1;i<=segments;i++){
+
+        const q=i/segments;
+
+        let angle;
+
+        if(clockwise)
+            angle=startAngle-sweep*q;
+        else
+            angle=startAngle+sweep*q;
+
+        const u=
+            cu+
+            radius*Math.cos(angle);
+
+        const v=
+            cv+
+            radius*Math.sin(angle);
+
+        const point={
+            x:start.x,
+            y:start.y,
+            z:start.z
+        };
+
+        point[axes.u]=u;
+        point[axes.v]=v;
+
+        point[axes.normal]=
+            start[axes.normal]+
+            (
+                target[axes.normal]-
+                start[axes.normal]
+            )*q;
+
+        validate(point);
+
+        points.push(point);
+
+    }
+
+    const feed=Math.max(
+        1,
+        machine.feed
+    );
+
+    let duration=
+        arcLength/feed*60000;
+
+    duration=Math.max(
+        100,
+        duration
+    );
+
+    duration/=
+        Number(
+            document.getElementById("speed").value
+        );
+
+    return{
+        type:"arc",
+        from:start,
+        target,
+        center:{
+            [axes.u]:cu,
+            [axes.v]:cv
+        },
+        radius,
+        clockwise,
+        plane:machine.plane,
+        points,
+        duration,
+        rapid:false
+    };
+
+}
+
+
+/* ============================================================
+   MOVIMIENTO
+============================================================ */
+
+let motion=null;
+
+let motionStart=0;
+
+
+function executeCommand(c){
+
+    const cmd=c.command;
+    const p=c.p;
+
+    /*
+       Feed rate es modal.
+    */
+    if(p.F!==undefined){
+
+        machine.feed=
+            mm(p.F);
+
+    }
+
+    /*
+       Spindle speed es modal.
+    */
+    if(p.S!==undefined)
+        machine.rpm=Math.max(
+            0,
+            p.S
+        );
+
+
+    /* =========================
+       UNIDADES
+    ========================= */
+
+    if(cmd==="G20"){
+
+        machine.units="inch";
+        return;
+
+    }
+
+    if(cmd==="G21"){
+
+        machine.units="mm";
+        return;
+
+    }
+
+
+    /* =========================
+       COORDENADAS
+    ========================= */
+
+    if(cmd==="G90"){
+
+        machine.mode="absolute";
+        return;
+
+    }
+
+    if(cmd==="G91"){
+
+        machine.mode="relative";
+        return;
+
+    }
+
+    if(cmd==="G53"){
+
+        /*
+           G53 es modal sólo para el bloque.
+           Para este simulador hacemos que el siguiente
+           movimiento ignore el offset activo.
+        */
+        machine.g53Next=true;
+        return;
+
+    }
+
+
+    /* =========================
+       PLANOS
+    ========================= */
+
+    if(cmd==="G17"){
+
+        machine.plane="XY";
+        return;
+
+    }
+
+    if(cmd==="G18"){
+
+        machine.plane="XZ";
+        return;
+
+    }
+
+    if(cmd==="G19"){
+
+        machine.plane="YZ";
+        return;
+
+    }
+
+
+    /* =========================
+       FEED MODE
+    ========================= */
+
+    if(cmd==="G93"){
+
+        machine.feedMode="G93";
+        return;
+
+    }
+
+    if(cmd==="G94"){
+
+        machine.feedMode="G94";
+        return;
+
+    }
+
+    if(cmd==="G95"){
+
+        machine.feedMode="G95";
+        return;
+
+    }
+
+
+    /* =========================
+       WORK OFFSETS
+    ========================= */
+
+    if([
+        "G54","G55","G56",
+        "G57","G58","G59"
+    ].includes(cmd)){
+
+        machine.coordinateSystem=cmd;
+        return;
+
+    }
+
+
+    /* =========================
+       COMPENSACIÓN
+    ========================= */
+
+    if(cmd==="G40"){
+
+        machine.compensation="G40";
+        return;
+
+    }
+
+    if(cmd==="G41"){
+
+        machine.compensation="G41";
+        return;
+
+    }
+
+    if(cmd==="G42"){
+
+        machine.compensation="G42";
+        return;
+
+    }
+
+
+    /* =========================
+       G92
+    ========================= */
+
+    if(cmd==="G92"){
+
+        /*
+           G92 establece la posición mostrada.
+           Se interpreta en coordenadas de trabajo.
+        */
+        const offset=activeOffset();
+
+        if(p.X!==undefined)
+            machine.x=
+                mm(p.X)+offset.x;
+
+        if(p.Y!==undefined)
+            machine.y=
+                mm(p.Y)+offset.y;
+
+        if(p.Z!==undefined)
+            machine.z=
+                mm(p.Z)+offset.z;
+
+        validate({
+            x:machine.x,
+            y:machine.y,
+            z:machine.z
+        });
+
+        return;
+
+    }
+
+
+    /* =========================
+       G4 DWELL
+    ========================= */
+
+    if(cmd==="G4" || cmd==="G04"){
+
+        let ms=0;
+
+        if(p.P!==undefined){
+
+            /*
+               Convención usada:
+               P = milisegundos.
+            */
+            ms=Math.max(
+                0,
+                p.P
+            );
+
+        }
+
+        motion={
+            type:"dwell",
+            duration:Math.max(
+                0,
+                ms
+            )
+        };
+
+        motionStart=performance.now();
+
+        return "MOTION";
+
+    }
+
+
+    /* =========================
+       SPINDLE
+    ========================= */
+
+    if(
+        cmd==="M3" ||
+        cmd==="M03"
+    ){
+
+        machine.spindle=true;
+        machine.spindleDirection="CW";
+
+        if(p.S!==undefined)
+            machine.rpm=p.S;
+        else if(machine.rpm<=0)
+            machine.rpm=12000;
+
+        return;
+
+    }
+
+    if(
+        cmd==="M4" ||
+        cmd==="M04"
+    ){
+
+        machine.spindle=true;
+        machine.spindleDirection="CCW";
+
+        if(p.S!==undefined)
+            machine.rpm=p.S;
+        else if(machine.rpm<=0)
+            machine.rpm=12000;
+
+        return;
+
+    }
+
+    if(
+        cmd==="M5" ||
+        cmd==="M05"
+    ){
+
+        machine.spindle=false;
+        machine.rpm=0;
+
+        return;
+
+    }
+
+
+    /* =========================
+       COOLANT
+    ========================= */
+
+    if(cmd==="M7"){
+
+        machine.coolant="MIST";
+        return;
+
+    }
+
+    if(cmd==="M8"){
+
+        machine.coolant="FLOOD";
+        return;
+
+    }
+
+    if(cmd==="M9"){
+
+        machine.coolant="OFF";
+        return;
+
+    }
+
+
+    /* =========================
+       HERRAMIENTA
+    ========================= */
+
+    if(cmd==="T"){
+
+        machine.pendingTool=
+            Number(p.T)||0;
+
+        return;
+
+    }
+
+    if(cmd==="M6" || cmd==="M06"){
+
+        machine.tool=
+            machine.pendingTool;
+
+        return;
+
+    }
+
+
+    /* =========================
+       PAUSA
+    ========================= */
+
+    if(
+        cmd==="M0" ||
+        cmd==="M00" ||
+        cmd==="M1" ||
+        cmd==="M01"
+    ){
+
+        machine.running=false;
+        machine.paused=true;
+        machine.state="PAUSED";
+
+        message(
+            cmd==="M1"
+                ? "PAUSA OPCIONAL"
+                : "PAUSA PROGRAMADA"
+        );
+
+        return;
+
+    }
+
+
+    /* =========================
+       CICLOS
+    ========================= */
+
+    if(cmd==="G80"){
+
+        machine.cycle=null;
+        return;
+
+    }
+
+    if([
+        "G81","G82","G83","G84"
+    ].includes(cmd)){
+
+        /*
+           Guardamos el ciclo para que las siguientes
+           posiciones X/Y puedan reutilizarlo.
+        */
+        machine.cycle={
+            command:cmd,
+            Z:p.Z,
+            R:p.R,
+            Q:p.Q,
+            P:p.P,
+            F:p.F
+        };
+
+        /*
+           Ejecutar inmediatamente el primer punto.
+        */
+        return executeCannedCycle(
+            cmd,
+            p
+        );
+
+    }
+
+
+    if(
+        machine.cycle &&
+        cmd===null
+    ){
+
+        return executeCannedCycle(
+            machine.cycle.command,
+            p
+        );
+
+    }
+
+
+    /* =========================
+       MOVIMIENTO LINEAL
+    ========================= */
+
+    if(
+        cmd==="G0" ||
+        cmd==="G00" ||
+        cmd==="G1" ||
+        cmd==="G01"
+    ){
+
+        const offsetWasG53=
+            machine.g53Next===true;
+
+        let target;
+
+        if(offsetWasG53){
+
+            machine.g53Next=false;
+
+            const old=machine.coordinateSystem;
+            machine.coordinateSystem="G54";
+
+            const offset=machine.offsets.G54;
+
+            target={
+                x:p.X!==undefined
+                    ? (
+                        machine.mode==="absolute"
+                            ? mm(p.X)
+                            : machine.x+mm(p.X)
+                    )
+                    : machine.x,
+
+                y:p.Y!==undefined
+                    ? (
+                        machine.mode==="absolute"
+                            ? mm(p.Y)
+                            : machine.y+mm(p.Y)
+                    )
+                    : machine.y,
+
+                z:p.Z!==undefined
+                    ? (
+                        machine.mode==="absolute"
+                            ? mm(p.Z)
+                            : machine.z+mm(p.Z)
+                    )
+                    : machine.z
+            };
+
+            machine.coordinateSystem=old;
+
+        }
+        else{
+
+            target=targetFrom(p);
+
+        }
+
+        motion=createLinearMotion(
+            target,
+            cmd==="G0" ||
+            cmd==="G00"
+        );
+
+        motionStart=
+            performance.now();
+
+        return "MOTION";
+
+    }
+
+
+    /* =========================
+       G2 / G3
+    ========================= */
+
+    if(
+        cmd==="G2" ||
+        cmd==="G02"
+    ){
+
+        const target=targetFrom(p);
+
+        motion=createArcMotion(
+            target,
+            p,
+            true
+        );
+
+        motionStart=
+            performance.now();
+
+        return "MOTION";
+
+    }
+
+
+    if(
+        cmd==="G3" ||
+        cmd==="G03"
+    ){
+
+        const target=targetFrom(p);
+
+        motion=createArcMotion(
+            target,
+            p,
+            false
+        );
+
+        motionStart=
+            performance.now();
+
+        return "MOTION";
+
+    }
+
+
+    /*
+       Código desconocido: no detenemos el programa.
+       Se informa en consola para facilitar depuración.
+    */
+    if(cmd!==null){
+
+        console.warn(
+            "G-code no implementado:",
+            cmd,
+            c.raw
+        );
+
+    }
+
+}
+
+
+/*
+   Ciclos de taladrado virtuales.
+   G81 = taladro
+   G82 = taladro + dwell
+   G83 = peck drilling
+   G84 = roscado virtual
+*/
+function executeCannedCycle(cmd,p){
+
+    const current={
+        x:machine.x,
+        y:machine.y,
+        z:machine.z
+    };
+
+    const offset=activeOffset();
+
+    const x=
+        p.X!==undefined
+            ? (
+                machine.mode==="absolute"
+                    ? mm(p.X)+offset.x
+                    : machine.x+mm(p.X)
+            )
+            : machine.x;
+
+    const y=
+        p.Y!==undefined
+            ? (
+                machine.mode==="absolute"
+                    ? mm(p.Y)+offset.y
+                    : machine.y+mm(p.Y)
+            )
+            : machine.y;
+
+    const r=
+        p.R!==undefined
+            ? (
+                machine.mode==="absolute"
+                    ? mm(p.R)+offset.z
+                    : machine.z+mm(p.R)
+            )
+            : machine.z;
+
+    const z=
+        p.Z!==undefined
+            ? (
+                machine.mode==="absolute"
+                    ? mm(p.Z)+offset.z
+                    : machine.z+mm(p.Z)
+            )
+            : machine.z;
+
+    validate({x,y,z});
+    validate({x,y,r});
+
+    const retract=Math.max(
+        r,
+        z
+    );
+
+    const depth=z;
+
+    /*
+       Movimiento al punto XY y al plano R.
+    */
+    const approach={
+        x,
+        y,
+        z:retract
+    };
+
+    const drill={
+        x,
+        y,
+        z:depth
+    };
+
+    const retractMotion={
+        x,
+        y,
+        z:retract
+    };
+
+    const points=[
+        approach,
+        drill
+    ];
+
+    if(cmd==="G83"){
+
+        const q=
+            p.Q!==undefined
+                ? Math.max(
+                    0.01,
+                    mm(p.Q)
+                )
+                : 1;
+
+        points.length=0;
+
+        let currentZ=retract;
+
+        while(
+            currentZ>depth+0.0001
+        ){
+
+            currentZ=
+                Math.max(
+                    depth,
+                    currentZ-q
+                );
+
+            points.push({
+                x,
+                y,
+                z:currentZ
+            });
+
+            if(currentZ>depth)
+                points.push({
+                    x,
+                    y,
+                    z:retract
+                });
+
+        }
+
+    }
+
+    points.push(retractMotion);
+
+    const from={
+        x:machine.x,
+        y:machine.y,
+        z:machine.z
+    };
+
+    const distance=points.reduce(
+        (sum,pnt,i)=>{
+            const a=i===0?from:points[i-1];
+            return sum+
+                Math.hypot(
+                    pnt.x-a.x,
+                    pnt.y-a.y,
+                    pnt.z-a.z
+                );
+        },
+        0
+    );
+
+    let duration=
+        distance/
+        Math.max(
+            1,
+            machine.feed
+        )*
+        60000;
+
+    if(cmd==="G82" && p.P!==undefined)
+        duration+=Math.max(0,p.P);
+
+    duration=Math.max(
+        100,
+        duration
+    )/
+    Number(
+        document.getElementById("speed").value
+    );
+
+    motion={
+        type:"cycle",
+        from,
+        target:retractMotion,
+        points,
+        duration,
+        index:0,
+        rapid:false
+    };
+
+    motionStart=performance.now();
+
+    return "MOTION";
+
+}
+
+
+/* ============================================================
+   ACTUALIZAR MOVIMIENTO
+============================================================ */
+
+function updateMotion(now){
+
+    if(!motion)
+        return;
+
+    let q=
+        (
+            now-motionStart
+        )/
+        Math.max(
+            1,
+            motion.duration
+        );
+
+    q=Math.max(
+        0,
+        Math.min(
+            1,
+            q
+        )
+    );
+
+
+    /*
+       DWELL
+    */
+    if(motion.type==="dwell"){
+
+        if(q>=1){
+
+            motion=null;
+            machine.index++;
+
+        }
+
+        return;
+
+    }
+
+
+    /*
+       MOVIMIENTO LINEAL
+    */
+    if(motion.type==="linear"){
+
+        machine.x=
+            motion.from.x+
+            (
+                motion.target.x-
+                motion.from.x
+            )*q;
+
+        machine.y=
+            motion.from.y+
+            (
+                motion.target.y-
+                motion.from.y
+            )*q;
+
+        machine.z=
+            motion.from.z+
+            (
+                motion.target.z-
+                motion.from.z
+            )*q;
+
+    }
+
+
+    /*
+       MOVIMIENTO ARC
+    */
+    else if(motion.type==="arc"){
+
+        const count=
+            motion.points.length;
+
+        const index=
+            Math.min(
+                count-1,
+                Math.floor(
+                    q*count
+                )
+            );
+
+        const point=
+            motion.points[index];
+
+        machine.x=point.x;
+        machine.y=point.y;
+        machine.z=point.z;
+
+    }
+
+
+    /*
+       CICLO
+    */
+    else if(motion.type==="cycle"){
+
+        const count=
+            motion.points.length;
+
+        const index=
+            Math.min(
+                count-1,
+                Math.floor(
+                    q*count
+                )
+            );
+
+        const point=
+            motion.points[index];
+
+        machine.x=point.x;
+        machine.y=point.y;
+        machine.z=point.z;
+
+    }
+
+
+    if(q>=1){
+
+        machine.x=
+            motion.target.x;
+
+        machine.y=
+            motion.target.y;
+
+        machine.z=
+            motion.target.z;
+
+
+        if(
+            motion.type==="arc" ||
+            motion.type==="cycle"
+        ){
+
+            for(const p of motion.points){
+
+                addPath(
+                    p.x,
+                    p.y,
+                    p.z,
+                    false
+                );
+
+            }
+
+        }
+        else{
+
+            addPath(
+                machine.x,
+                machine.y,
+                machine.z,
+                motion.rapid
+            );
+
+        }
+
+        motion=null;
+        machine.index++;
+
+    }
+
+}
+
+
+/* ============================================================
+   LOOP CNC
+============================================================ */
+
+function runLoop(now){
+
+    if(!machine.running)
+        return;
+
+
+    if(motion){
+
+        updateMotion(now);
+
+        updateProgress();
+        updateUI();
+
+        requestAnimationFrame(
+            runLoop
+        );
+
+        return;
+
+    }
+
+
+    if(
+        machine.index>=
+        machine.commands.length
+    ){
+
+        finish();
+
+        return;
+
+    }
+
+
+    const command=
+        machine.commands[
+            machine.index
+        ];
+
+
+    try{
+
+        const result=
+            executeCommand(
+                command
+            );
+
+
+        if(
+            result==="MOTION"
+        ){
+
+            requestAnimationFrame(
+                runLoop
+            );
+
+            return;
+
+        }
+
+
+        updateProgress();
+        updateUI();
+
+
+        if(machine.paused)
+            return;
+
+
+        if(
+            !machine.running
+        )
+            return;
+
+
+        machine.index++;
+
+
+        requestAnimationFrame(
+            runLoop
+        );
+
+    }
+    catch(err){
+
+        machine.running=false;
+        machine.state="ERROR";
+
+        showError(
+
+            "Línea "+
+            (command.line+1)+
+            "\n\n"+
+            err.message+
+            "\n\n"+
+            command.raw
+
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   CONTROL
+============================================================ */
+
+function start(){
+
+    if(
+        machine.commands.length===0
+    ){
+
+        showError(
+            "No hay G-code cargado."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        machine.index>=
+        machine.commands.length
+    ){
+
+        machine.index=0;
+        machine.progress=0;
+
+    }
+
+
+    machine.running=true;
+    machine.paused=false;
+    machine.state="RUNNING";
+
+
+    message(
+        "EJECUTANDO G-CODE"
+    );
+
+
+    requestAnimationFrame(
+        runLoop
+    );
+
+}
+
+
+function pause(){
+
+    if(machine.running){
+
+        machine.running=false;
+        machine.paused=true;
+        machine.state="PAUSED";
+
+        message(
+            "PAUSA"
+        );
+
+    }
+    else if(machine.paused){
+
+        machine.running=true;
+        machine.paused=false;
+        machine.state="RUNNING";
+
+        requestAnimationFrame(
+            runLoop
+        );
+
+    }
+
+}
+
+
+function stop(){
+
+    machine.running=false;
+    machine.paused=false;
+
+    motion=null;
+
+    machine.spindle=false;
+    machine.rpm=0;
+
+    machine.state="STOPPED";
+
+    updateUI();
+
+}
+
+
+function home(){
+
+    machine.running=false;
+    machine.paused=false;
+
+    motion=null;
+
+    machine.x=0;
+    machine.y=0;
+    machine.z=70;
+
+    machine.spindle=false;
+    machine.rpm=0;
+
+    machine.state="HOME";
+
+    addPath(
+        0,
+        0,
+        70,
+        true
+    );
+
+    updateUI();
+
+}
+
+
+function resetMachine(){
+
+    machine.running=false;
+    machine.paused=false;
+
+    motion=null;
+
+    machine.x=0;
+    machine.y=0;
+    machine.z=70;
+
+    machine.feed=1000;
+
+    machine.units="mm";
+    machine.mode="absolute";
+    machine.plane="XY";
+    machine.feedMode="G94";
+    machine.coordinateSystem="G54";
+    machine.compensation="G40";
+
+    machine.offsets={
+        G54:{x:0,y:0,z:0},
+        G55:{x:0,y:0,z:0},
+        G56:{x:0,y:0,z:0},
+        G57:{x:0,y:0,z:0},
+        G58:{x:0,y:0,z:0},
+        G59:{x:0,y:0,z:0}
+    };
+
+    machine.g53Next=false;
+    machine.cycle=null;
+
+    machine.spindle=false;
+    machine.spindleDirection="CW";
+    machine.rpm=0;
+    machine.coolant="OFF";
+    machine.tool=0;
+    machine.pendingTool=0;
+
+    machine.index=0;
+    machine.progress=0;
+
+    machine.state="IDLE";
+
+    path.length=0;
+
+    updateUI();
+
+}
+
+
+function finish(){
+
+    machine.running=false;
+    machine.paused=false;
+
+    motion=null;
+
+    machine.index=
+        machine.commands.length;
+
+    machine.progress=100;
+
+    machine.spindle=false;
+    machine.rpm=0;
+
+    machine.state="COMPLETED";
+
+    updateUI();
+
+    message(
+        "PROGRAMA TERMINADO"
+    );
+
+}
+
+
+/* ============================================================
+   PROGRESO
+============================================================ */
+
+function updateProgress(){
+
+    if(
+        machine.commands.length
+    ){
+
+        machine.progress=
+            machine.index/
+            machine.commands.length*
+            100;
+
+    }
+
+}
+
+
+/* ============================================================
+   JOG
+============================================================ */
+
+function jog(axis,dir){
+
+    if(machine.running)
+        return;
+
+
+    const target={
+        x:machine.x,
+        y:machine.y,
+        z:machine.z
+    };
+
+
+    target[
+        axis.toLowerCase()
+    ] +=
+        machine.step*dir;
+
+
+    try{
+
+        validate(target);
+
+        machine.x=target.x;
+        machine.y=target.y;
+        machine.z=target.z;
+
+        addPath(
+            machine.x,
+            machine.y,
+            machine.z,
+            true
+        );
+
+        machine.state="JOG";
+
+        updateUI();
+
+    }
+    catch(err){
+
+        showError(
+            err.message
+        );
+
+    }
+
+}
+
+
+document
+.querySelectorAll(
+    "[data-axis]"
+)
+.forEach(
+    button=>{
+
+        button.onclick=()=>{
+
+            jog(
+                button.dataset.axis,
+                Number(
+                    button.dataset.dir
+                )
+            );
+
+        };
+
+    }
+);
+
+
+/* ============================================================
+   STEP
+============================================================ */
+
+document
+.querySelectorAll(
+    ".step"
+)
+.forEach(
+    button=>{
+
+        button.onclick=()=>{
+
+            document
+            .querySelectorAll(
+                ".step"
+            )
+            .forEach(
+                b=>
+                b.classList.remove(
+                    "active"
+                )
+            );
+
+
+            button.classList.add(
+                "active"
+            );
+
+
+            machine.step=
+                Number(
+                    button.dataset.step
+                );
+
+        };
+
+    }
+);
+
+
+/* ============================================================
+   FILE
+============================================================ */
+
+function loadFile(){
+
+    document
+    .getElementById("file")
+    .click();
+
+}
+
+
+document
+.getElementById("file")
+.addEventListener(
+    "change",
+    e=>{
+
+        const file=
+            e.target.files[0];
+
+
+        if(!file)
+            return;
+
+
+        const reader=
+            new FileReader();
+
+
+        reader.onload=()=>{
+
+            document
+            .getElementById("gcode")
+            .value=
+                reader.result;
+
+
+            parseProgram(
+                reader.result
+            );
+
+        };
+
+
+        reader.readAsText(file);
+
+    }
+);
+
+
+/* ============================================================
+   VELOCIDAD
+============================================================ */
+
+document
+.getElementById("speed")
+.addEventListener(
+    "input",
+    e=>{
+
+        document
+        .getElementById(
+            "speedValue"
+        )
+        .textContent=
+            Number(
+                e.target.value
+            ).toFixed(1);
+
+    }
+);
+
+
+/* ============================================================
+   UI
+============================================================ */
+
+function updateUI(){
+
+    document.getElementById("x")
+        .textContent=
+        machine.x.toFixed(2);
+
+
+    document.getElementById("y")
+        .textContent=
+        machine.y.toFixed(2);
+
+
+    document.getElementById("z")
+        .textContent=
+        machine.z.toFixed(2);
+
+
+    document.getElementById("state")
+        .textContent=
+        machine.state;
+
+
+    document.getElementById("line")
+        .textContent=
+        `${machine.index} / ${machine.commands.length}`;
+
+
+    document.getElementById("percent")
+        .textContent=
+        machine.progress.toFixed(1)+"%";
+
+
+    document.getElementById("spindle")
+        .textContent=
+        machine.spindle
+            ? `ON ${machine.rpm} RPM`
+            : "OFF";
+
+
+    document.getElementById("bar")
+        .style.width=
+        machine.progress+"%";
+
+}
+
+
+function message(text){
+
+    document.getElementById(
+        "message"
+    ).textContent=text;
+
+}
+
+
+function showError(text){
+
+    document.getElementById(
+        "errorText"
+    ).textContent=text;
+
+
+    document.getElementById(
+        "error"
+    ).style.display="block";
+
+}
+
+
+function closeError(){
+
+    document.getElementById(
+        "error"
+    ).style.display="none";
+
+}
+
+
+/* ============================================================
+   TECLADO
+============================================================ */
+
+document.addEventListener(
+    "keydown",
+    e=>{
+
+        if(
+            e.target.tagName==="TEXTAREA" ||
+            e.target.tagName==="INPUT"
+        )
+            return;
+
+
+        switch(
+            e.key.toLowerCase()
+        ){
+
+            case "a":
+                jog("X",-1);
+                break;
+
+            case "d":
+                jog("X",1);
+                break;
+
+            case "w":
+                jog("Y",1);
+                break;
+
+            case "s":
+                jog("Y",-1);
+                break;
+
+            case "r":
+                jog("Z",1);
+                break;
+
+            case "f":
+                jog("Z",-1);
+                break;
+
+            case " ":
+
+                e.preventDefault();
+
+                pause();
+
+                break;
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   INICIO
+============================================================ */
+
+parseProgram(
+    document
+    .getElementById("gcode")
+    .value
+);
+
+home();
+
+resetCamera();
+
+draw();
+
+
+/* ============================================================
+   RENDER
+============================================================ */
+
+function draw(){
+
+    ctx.clearRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    const gradient=
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            H
+        );
+
+
+    gradient.addColorStop(
+        0,
+        "#081217"
+    );
+
+
+    gradient.addColorStop(
+        1,
+        "#020405"
+    );
+
+
+    ctx.fillStyle=gradient;
+
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    drawMachine();
+
+    drawPath();
+
+
+    requestAnimationFrame(
+        draw
+    );
+
+}
+
+</script>
+
+</body>
+</html>
